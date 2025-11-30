@@ -894,7 +894,7 @@
 
             const vLine = document.createElement('div');
             vLine.style.gridColumn = `${ddo.length + 1}`;
-            vLine.style.gridRow = '1 / span 100'; 
+            vLine.style.gridRow = '1 / 2'; // <-- MODIFICADO: La línea vertical ahora solo ocupa la primera fila.
             vLine.style.borderLeft = '3px solid #1f2937';
             vLine.style.height = '100%';
             wrapper.appendChild(vLine);
