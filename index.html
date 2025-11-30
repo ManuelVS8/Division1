@@ -88,6 +88,7 @@
         }
         .btn-primary { background-color: var(--primary); }
         .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
         .btn-group {
             display: flex;
             gap: 12px;
@@ -144,7 +145,7 @@
             display: block;
             border-radius: 12px;
         }
-        .fixed-sound-btn, .fixed-help-btn {
+        .fixed-sound-btn, .fixed-help-btn, .fixed-tables-btn {
             position: fixed;
             top: 20px;
             width: 50px;
@@ -160,10 +161,12 @@
             transition: all var(--transition);
             z-index: 1000;
             box-shadow: var(--shadow);
+            font-size: 24px;
         }
         .fixed-sound-btn { left: 20px; }
         .fixed-help-btn { right: 20px; }
-        .fixed-sound-btn:hover, .fixed-help-btn:hover {
+        .fixed-tables-btn { left: 80px; }
+        .fixed-sound-btn:hover, .fixed-help-btn:hover, .fixed-tables-btn:hover {
             background-color: var(--primary);
             color: white;
             transform: scale(1.1);
@@ -275,15 +278,14 @@
             border-color: var(--primary);
             transform: translateY(-2px);
         }
-        /* AJUSTE CLAVE: HACER QUE FLUYA EN EL DOCUMENTO, NO FIJO */
         .question-popup {
-            position: relative; /* Cambiar a relativo para que fluya en el contenedor */
-            margin: 40px auto; /* Centrar horizontalmente y separarlo de la división */
+            position: relative;
+            margin: 40px auto;
             background-color: white;
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            z-index: 10; /* Asegurar que está por encima */
+            z-index: 10;
             display: none;
             text-align: center;
             max-width: 90%;
@@ -375,7 +377,7 @@
             cursor: pointer;
             color: var(--text-light);
         }
-        .help-content h3 {
+        .help-content h3, .tables-content h3 {
             color: var(--primary);
             margin-bottom: 16px;
             font-size: 1.2em;
@@ -387,6 +389,12 @@
         .help-steps li {
             margin-bottom: 10px;
             font-size: 1em;
+        }
+        .tables-content p {
+            font-size: 1.2em;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            text-align: center;
         }
         .final-screen {
             text-align: center;
@@ -449,23 +457,49 @@
             color: #ff9f43;
             font-weight: 700;
         }
-        /* AJUSTE CLAVE: PARA FORZAR EL TAMAÑO VERTICAL DEL CONTENEDOR DE JUEGO Y MANTENER EL CONTENIDO ARRIBA */
         #gameScreen.active .container {
-            min-height: 80vh; /* Mayor altura */
+            min-height: 80vh;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Empuja el contenido hacia arriba */
+            justify-content: flex-start;
         }
         #divisionArea {
-            /* Permitir que el área de división ocupe el espacio central */
-            flex-grow: 0; /* Desactivar crecimiento para que ocupe solo el espacio necesario */
+            flex-grow: 0;
             display: flex;
-            align-items: flex-start; /* Alinea el contenido arriba dentro de su área */
+            align-items: flex-start;
             justify-content: center;
-            margin-top: 20px; /* Margen superior para separarlo del título */
+            margin-top: 20px;
             margin-bottom: 20px;
         }
-        /* FIN AJUSTE CLAVE */
+        /* Estilos para el modo manual */
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .manual-error {
+            color: var(--danger);
+            font-weight: 700;
+            margin-top: 10px;
+            text-align: center;
+        }
         @media (min-width: 768px) {
             .container { max-width: 768px; padding: 25px; }
             h1 { font-size: 2.5em; }
@@ -491,8 +525,28 @@
             </div>
             <div class="btn-group">
                 <button id="startBtn" class="btn" onclick="startGame()">Comenzar</button>
+                <button id="manualBtn" class="btn btn-primary" onclick="showManualMode()">Manual</button>
             </div>
             <img src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png" alt="Niños estudiando" class="start-image">
+        </div>
+    </div>
+    <div id="manualScreen" class="screen">
+        <div class="container">
+            <h1>Modo Manual</h1>
+            <p>Introduce tu propia división para practicar.</p>
+            <div class="input-group">
+                <label for="manualDividend">Dividendo (entre 10 y 9999)</label>
+                <input type="number" id="manualDividend" placeholder="Ej: 456">
+            </div>
+            <div class="input-group">
+                <label for="manualDivisor">Divisor (una cifra)</label>
+                <input type="number" id="manualDivisor" placeholder="Ej: 5">
+            </div>
+            <div id="manualError" class="manual-error"></div>
+            <div class="btn-group">
+                <button id="startManualBtn" class="btn btn-success" onclick="startCustomDivision()">Empezar</button>
+                <button id="backFromManualBtn" class="btn" onclick="goToStartScreen()">Atrás</button>
+            </div>
         </div>
     </div>
     <div id="gameScreen" class="screen">
@@ -502,6 +556,7 @@
                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
             </svg>
         </button>
+        <button id="fixedTablesBtn" class="fixed-tables-btn" onclick="toggleTablesModal()">📊</button>
         <button id="fixedHelpBtn" class="fixed-help-btn" onclick="toggleHelpModal()">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -529,8 +584,10 @@
             
             <div class="btn-group-row">
                 <button id="checkBtn" class="btn btn-primary" onclick="checkAnswer()">Comprobar</button>
-                <button id="continueBtn" class="btn btn-success" style="display: none;" onclick="nextQuestion()">Continuar</button>
+                <button id="continueBtn" class="btn btn-success" style="display: none;" onclick="handleNextAction()">Continuar</button>
+                <button id="newBtn" class="btn btn-primary" style="display: none;" onclick="newManualDivision()">Nueva</button>
                 <button id="homeBtn" class="btn" style="display: none;" onclick="goToStartScreen()">Inicio</button>
+                <button id="exitInfiniteBtn" class="btn btn-danger" style="display: none;" onclick="exitInfiniteMode()">Salir</button>
             </div>
             <div id="feedback" class="feedback"></div>
         </div>
@@ -544,6 +601,7 @@
             <p id="finalMessage"></p>
             <div class="btn-group">
                 <button id="restartBtn" class="btn" style="background-color: #f59e42;" onclick="restartGame()">Volver al menú</button>
+                <button id="infiniteModeBtn" class="btn btn-primary" onclick="startInfiniteMode()">Entrenamiento infinito</button>
             </div>
             <p class="credit">Created by Manuel J. Ventura</p>
             <img src="https://github.com/ManuelVS8/Efectos_audio/blob/1e2a36cdd1f8bedcb578a30f5ec5cc8f21c287fe/Siurot.png?raw=true" alt="Logo del colegio" class="school-logo">
@@ -570,6 +628,17 @@
             </div>
         </div>
     </div>
+    <div id="tablesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tabla del <span id="tableTitle">--</span></h2>
+                <button class="modal-close" onclick="toggleTablesModal()">&times;</button>
+            </div>
+            <div class="tables-content" id="tablesContent">
+                <!-- La tabla se generará aquí con JavaScript -->
+            </div>
+        </div>
+    </div>
 
     <script>
         // === CORE: LÓGICA DEL ALGORITMO ESPAÑOL ===
@@ -584,22 +653,26 @@
         let currentBajaValue = '';
         let userSteps = [];
         let isChecked = false;
-        // CORRECCIÓN: El número mínimo de interacciones para una partida perfecta es 27 (9 por división).
-        const MIN_INTERACTIONS_PER_GAME = 27;
+        let allDivisionSteps = [];
 
         let gameState = {
             currentQuestionIndex: 0,
             score: 0,
             startTime: null,
             soundEnabled: true,
-            totalInteractions: 0
+            totalInteractions: 0,
+            isInfiniteMode: false,
+            isManualMode: false,
+            minInteractionsForCurrentGame: 0
         };
 
         const elements = {
             startScreen: document.getElementById('startScreen'),
+            manualScreen: document.getElementById('manualScreen'),
             gameScreen: document.getElementById('gameScreen'),
             finalScreen: document.getElementById('finalScreen'),
             helpModal: document.getElementById('helpModal'),
+            tablesModal: document.getElementById('tablesModal'),
             divisionArea: document.getElementById('divisionArea'),
             digitBank: document.getElementById('digitBank'),
             questionPopup: document.getElementById('questionPopup'),
@@ -607,17 +680,24 @@
             questionDigitBank: document.getElementById('questionDigitBank'),
             checkBtn: document.getElementById('checkBtn'),
             continueBtn: document.getElementById('continueBtn'),
+            newBtn: document.getElementById('newBtn'),
             homeBtn: document.getElementById('homeBtn'),
+            exitInfiniteBtn: document.getElementById('exitInfiniteBtn'),
             feedback: document.getElementById('feedback'),
             normalProgress: document.getElementById('normalProgress'),
             progressFill: document.getElementById('progressFill'),
             finalScore: document.getElementById('finalScore'),
             finalTime: document.getElementById('finalTime'),
             trophyContainer: document.getElementById('trophyContainer'),
-            finalMessage: document.getElementById('finalMessage')
+            finalMessage: document.getElementById('finalMessage'),
+            tableTitle: document.getElementById('tableTitle'),
+            tablesContent: document.getElementById('tablesContent'),
+            manualDividend: document.getElementById('manualDividend'),
+            manualDivisor: document.getElementById('manualDivisor'),
+            manualError: document.getElementById('manualError')
         };
 
-        // === SONIDOS (Rutas corregidas y verificadas) ===
+        // === SONIDOS ===
         const Sounds = {
             sounds: {},
             init() {
@@ -650,25 +730,81 @@
             gameState.totalInteractions++;
         }
 
+        // === NAVEGACIÓN ===
+        function showManualMode() {
+            reproducirSonidoTap();
+            elements.startScreen.classList.remove('active');
+            elements.manualScreen.classList.add('active');
+        }
+
+        function startCustomDivision() {
+            reproducirSonidoTap();
+            const d = parseInt(elements.manualDividend.value);
+            const ds = parseInt(elements.manualDivisor.value);
+            elements.manualError.textContent = '';
+
+            if (isNaN(d) || isNaN(ds) || d < 10 || d > 9999) {
+                elements.manualError.textContent = 'El dividendo debe estar entre 10 y 9999.';
+                reproducirSonidoError();
+                return;
+            }
+            if (ds < 1 || ds > 9) {
+                elements.manualError.textContent = 'El divisor debe ser una cifra.';
+                reproducirSonidoError();
+                return;
+            }
+
+            gameState.isManualMode = true;
+            gameState.totalInteractions = 0;
+            allDivisionSteps = [];
+            gameState.startTime = Date.now();
+
+            dividend = d.toString();
+            divisor = ds;
+            quotient = Math.floor(d / ds).toString();
+            remainder = d % ds;
+
+            elements.manualScreen.classList.remove('active');
+            elements.gameScreen.classList.add('active');
+            elements.normalProgress.style.display = 'none';
+            elements.progressFill.parentElement.style.display = 'none';
+            reset();
+        }
+
+        function newManualDivision() {
+            reproducirSonidoTap();
+            elements.gameScreen.classList.remove('active');
+            elements.manualScreen.classList.add('active');
+            elements.manualDividend.value = '';
+            elements.manualDivisor.value = '';
+            elements.manualError.textContent = '';
+        }
+
         // === GENERACIÓN DE DIVISIÓN ===
         function generateDivision() {
-            divisor = Math.floor(Math.random() * 8) + 2; // 2-9
-            let cociente = Math.floor(Math.random() * 900) + 100; // 3 cifras, puede contener ceros
+            if (gameState.isManualMode) return; // No generar si es modo manual
+
+            divisor = Math.floor(Math.random() * 8) + 2;
+            let cociente = Math.floor(Math.random() * 900) + 100;
             remainder = Math.floor(Math.random() * divisor);
             let dividendo = cociente * divisor + remainder;
             dividend = dividendo.toString();
             quotient = cociente.toString();
+            
+            const steps = calculateSteps(dividend, divisor, quotient);
+            allDivisionSteps.push(steps);
+            
             reset();
         }
-
+        
         // === LÓGICA DEL ALGORITMO ESPAÑOL ===
-        function calculateSteps() {
-            const dividendStr = dividend;
+        function calculateSteps(dd, ds, q) {
+            const dividendStr = dd;
             const steps = [];
             let currentPartial = '';
 
             let initialDigitsTaken;
-            if (parseInt(dividendStr[0]) >= divisor) {
+            if (parseInt(dividendStr[0]) >= ds) {
                 currentPartial = dividendStr[0];
                 initialDigitsTaken = 1;
             } else {
@@ -678,13 +814,15 @@
             
             let currentDivIndex = initialDigitsTaken; 
 
-            for (let i = 0; i < quotient.length; i++) {
+            for (let i = 0; i < q.length; i++) {
                 let parcialNum = parseInt(currentPartial);
-                let cocienteDigit = parseInt(quotient[i]);
-                let producto = cocienteDigit * divisor;
-                let resta = parcialNum - producto;
+                let cocienteDigit = parseInt(q[i]);
                 
-                let isZeroStep = (cocienteDigit === 0 && i < quotient.length - 1); 
+                // CORRECCIÓN: Un paso es cero si el número parcial es menor que el divisor.
+                let isZeroStep = parcialNum < ds;
+                
+                let producto = cocienteDigit * ds;
+                let resta = parcialNum - producto;
                 
                 let bajaDigit = null;
                 if (currentDivIndex < dividendStr.length) {
@@ -714,10 +852,11 @@
             isChecked = false;
             elements.feedback.classList.remove('show');
             
-            // Ocultar botones de acción y mostrar el banco de dígitos
             elements.checkBtn.style.display = 'none';
             elements.continueBtn.style.display = 'none';
+            elements.newBtn.style.display = 'none';
             elements.homeBtn.style.display = 'none';
+            elements.exitInfiniteBtn.style.display = 'none';
             elements.digitBank.style.display = 'flex';
 
             renderDivision(); 
@@ -735,7 +874,7 @@
 
         // === RENDER VISUAL CON RESTA MENTAL COMPACTA ===
         function renderDivision() {
-            const steps = calculateSteps();
+            const steps = calculateSteps(dividend, divisor, quotient);
             const ddo = dividend;
             const dsr = divisor.toString();
             const qLen = quotient.length;
@@ -782,14 +921,14 @@
             if (digitsTaken > 0) {
                 let currentParcialEndCol = digitsTaken; 
                 let currentRow = 3; 
-                let rowIncremented = false; 
 
                 for (let i = 0; i < steps.length; i++) {
                     const step = steps[i];
                     if (i > currentColumnIndex) break; 
                     
                     const restAndBajaRow = currentRow; 
-                    
+
+                    // --- LÓGICA GENERAL PARA RESTA Y BAJADA ---
                     if (userSteps[i].resta !== undefined) {
                         const rStr = userSteps[i].resta.toString();
                         
@@ -799,11 +938,8 @@
                             wrapper.appendChild(box);
                         }
                         
-                        if (!rowIncremented) {
-                            currentRow++; 
-                            rowIncremented = true; 
-                        }
-                    } else if (currentStep === 'resta' && currentColumnIndex === i && !step.isZeroStep) {
+                        currentRow++; 
+                    } else if (currentStep === 'resta' && currentColumnIndex === i) {
                         for (let j = 0; j < currentRestaValue.length; j++) {
                             const box = createBox(currentRestaValue[j], 'answer-box current', 
                                                   restAndBajaRow, currentParcialEndCol - currentRestaValue.length + 1 + j);
@@ -932,7 +1068,7 @@
             reproducirSonidoTap(); 
             logInteraction();
 
-            const steps = calculateSteps();
+            const steps = calculateSteps(dividend, divisor, quotient);
             const step = steps[currentColumnIndex];
 
             if (currentStep === 'cociente') {
@@ -940,13 +1076,22 @@
                     userSteps[currentColumnIndex].cociente = digit;
                     userSteps[currentColumnIndex].correctCociente = true;
                     
+                    // --- LÓGICA "COCIENTE CERO" ---
                     if (step.isZeroStep) {
-                        userSteps[currentColumnIndex].resta = step.resta; 
+                        userSteps[currentColumnIndex].resta = step.resta;
                         userSteps[currentColumnIndex].correctResta = true;
-                        currentStep = 'baja';
+                        if (step.bajaDigit === null) {
+                            currentStep = 'final';
+                            elements.digitBank.style.display = 'none';
+                            elements.checkBtn.style.display = 'flex';
+                        } else {
+                            currentStep = 'baja';
+                        }
                     } else {
                         currentStep = 'resta';
                     }
+                    // --- FIN LÓGICA "COCIENTE CERO" ---
+
                     renderDivision();
                     updateQuestionText();
                     reproducirSonidoCorrecto(); 
@@ -970,8 +1115,6 @@
                         currentRestaValue = '';
                         reproducirSonidoCorrecto();
 
-                        // CORRECCIÓN: Si es el último paso (no hay más cifras que bajar),
-                        // mostramos el botón "Comprobar" inmediatamente.
                         if (step.bajaDigit === null) {
                             elements.digitBank.style.display = 'none';
                             elements.checkBtn.style.display = 'flex';
@@ -1010,7 +1153,7 @@
         }
 
         function updateQuestionText() {
-            const steps = calculateSteps();
+            const steps = calculateSteps(dividend, divisor, quotient);
             const step = steps[currentColumnIndex];
             
             let parcial;
@@ -1018,17 +1161,26 @@
             if (currentColumnIndex === 0) {
                 parcial = parseInt(dividend.substring(0, digitsTaken));
             } else {
+                const prevStep = steps[currentColumnIndex - 1];
                 const prevResta = userSteps[currentColumnIndex - 1].resta;
                 const baja = userSteps[currentColumnIndex - 1].baja;
                 parcial = parseInt(prevResta.toString() + baja.toString());
             }
 
             if (currentStep === 'cociente') {
-                elements.questionTitle.textContent = `Paso ${currentColumnIndex + 1}. ¿Qué número de la tabla del ${divisor} se acerca sin pasarse a ${parcial}?`;
+                if(step.isZeroStep) {
+                    elements.questionTitle.textContent = `Paso ${currentColumnIndex + 1}. Como ${parcial} es menor que ${divisor}, el cociente es 0.`;
+                } else {
+                    elements.questionTitle.textContent = `Paso ${currentColumnIndex + 1}. ¿Qué número de la tabla del ${divisor} se acerca sin pasarse a ${parcial}?`;
+                }
             } else if (currentStep === 'resta') {
                 elements.questionTitle.textContent = `Paso ${currentColumnIndex + 1}. Piensa: ${step.cocienteDigit} x ${divisor} = ${step.producto}. Resta: ${parcial} - ${step.producto} = ?`;
             } else if (currentStep === 'baja') {
-                elements.questionTitle.textContent = `Paso ${currentColumnIndex + 1}. Baja la siguiente cifra (${step.bajaDigit}).`;
+                if (steps[currentColumnIndex].isZeroStep) {
+                    elements.questionTitle.textContent = `Paso ${currentColumnIndex + 1}. Baja la siguiente cifra (${step.bajaDigit}) para formar el nuevo número.`;
+                } else {
+                    elements.questionTitle.textContent = `Paso ${currentColumnIndex + 1}. Baja la siguiente cifra (${step.bajaDigit}).`;
+                }
             } else if (currentStep === 'final') {
                 elements.questionTitle.textContent = `¡División terminada! Comprueba tu resultado final.`;
             }
@@ -1036,7 +1188,7 @@
 
         function checkAnswer() {
             if (currentStep !== 'final') return;
-            const steps = calculateSteps();
+            const steps = calculateSteps(dividend, divisor, quotient);
             let correct = true;
             for (let i = 0; i < steps.length; i++) {
                 if (!userSteps[i].correctCociente || !userSteps[i].correctResta) {
@@ -1059,44 +1211,74 @@
             }
             isChecked = true;
             elements.checkBtn.style.display = 'none';
-            elements.continueBtn.style.display = 'flex';
-            elements.homeBtn.style.display = 'flex';
+            
+            // Mostrar botones según el modo de juego
+            if (gameState.isManualMode) {
+                elements.newBtn.style.display = 'flex';
+                elements.homeBtn.style.display = 'flex';
+            } else if (gameState.isInfiniteMode) {
+                elements.continueBtn.style.display = 'flex';
+                elements.exitInfiniteBtn.style.display = 'flex';
+            } else {
+                elements.continueBtn.style.display = 'flex';
+                elements.homeBtn.style.display = 'flex';
+            }
+        }
+        
+        function handleNextAction() {
+            reproducirSonidoTap();
+            if (gameState.isInfiniteMode) {
+                generateDivision();
+            } else {
+                gameState.currentQuestionIndex++;
+                elements.normalProgress.textContent = `${gameState.currentQuestionIndex + 1}/3`;
+                elements.progressFill.style.width = `${((gameState.currentQuestionIndex + 1) / 3) * 100}%`;
+                if (gameState.currentQuestionIndex < 3) {
+                    generateDivision();
+                } else {
+                    endGame();
+                }
+            }
         }
 
-        // === NAVEGACIÓN ===
         function startGame() { 
             reproducirSonidoTap(); 
+            gameState.isInfiniteMode = false;
+            gameState.isManualMode = false;
             gameState.currentQuestionIndex = 0; 
             gameState.score = 0; 
-            gameState.totalInteractions = 0; 
+            gameState.totalInteractions = 0;
+            gameState.minInteractionsForCurrentGame = 0;
+            allDivisionSteps = [];
             gameState.startTime = Date.now(); 
             elements.startScreen.classList.remove('active'); 
-            elements.gameScreen.classList.add('active'); 
+            elements.gameScreen.classList.add('active');
+            elements.normalProgress.style.display = 'block';
+            elements.progressFill.parentElement.style.display = 'block';
             generateDivision(); 
         }
-        function nextQuestion() { 
-            reproducirSonidoTap(); 
-            gameState.currentQuestionIndex++; 
-            elements.normalProgress.textContent = `${gameState.currentQuestionIndex + 1}/3`; 
-            elements.progressFill.style.width = `${((gameState.currentQuestionIndex + 1) / 3) * 100}%`; 
-            if (gameState.currentQuestionIndex < 3) { 
-                generateDivision(); 
-            } else { 
-                endGame(); 
-            } 
-        }
+
         function endGame() { 
             const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000); 
             const minutes = Math.floor(elapsed / 60); 
             const seconds = elapsed % 60; 
             const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`; 
             
-            // CORRECCIÓN: Cálculo de puntuación final.
-            // Se asegura de que el divisor no sea cero para evitar errores.
+            let minInteractions = 0;
+            allDivisionSteps.forEach(steps => {
+                minInteractions += 1; // Selección inicial
+                minInteractions += steps.length; // Un cociente por paso
+                minInteractions += steps.length; // Un resto por paso
+                minInteractions += steps.length - 1; // Una baja por paso, menos la última
+            });
+            gameState.minInteractionsForCurrentGame = minInteractions;
+
             let finalScore = 0;
             if (gameState.totalInteractions > 0) {
-                finalScore = Math.floor((MIN_INTERACTIONS_PER_GAME / gameState.totalInteractions) * 100);
+                finalScore = Math.floor((gameState.minInteractionsForCurrentGame / gameState.totalInteractions) * 100);
             }
+            
+            finalScore = Math.min(100, finalScore);
 
             elements.gameScreen.classList.remove('active'); 
             elements.finalScreen.classList.add('active'); 
@@ -1115,9 +1297,31 @@
                 reproducirSonidoCompletado(); 
             } 
         }
+
+        function startInfiniteMode() {
+            reproducirSonidoTap();
+            gameState.isInfiniteMode = true;
+            gameState.isManualMode = false;
+            gameState.totalInteractions = 0;
+            allDivisionSteps = [];
+            gameState.startTime = Date.now();
+            elements.finalScreen.classList.remove('active');
+            elements.gameScreen.classList.add('active');
+            elements.normalProgress.style.display = 'none';
+            elements.progressFill.parentElement.style.display = 'none';
+            generateDivision();
+        }
+
+        function exitInfiniteMode() {
+            reproducirSonidoTap();
+            gameState.isInfiniteMode = false;
+            goToStartScreen();
+        }
+
         function goToStartScreen() { 
             reproducirSonidoTap(); 
             elements.gameScreen.classList.remove('active'); 
+            elements.manualScreen.classList.remove('active');
             elements.startScreen.classList.add('active'); 
         }
         function restartGame() { 
@@ -1129,6 +1333,20 @@
             reproducirSonidoTap();
             elements.helpModal.classList.toggle('active'); 
         }
+        function toggleTablesModal() {
+            reproducirSonidoTap();
+            renderTable(divisor);
+            elements.tablesModal.classList.toggle('active');
+        }
+        function renderTable(tableNumber) {
+            elements.tableTitle.textContent = tableNumber;
+            elements.tablesContent.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const p = document.createElement('p');
+                p.textContent = `${tableNumber} x ${i} = ${tableNumber * i}`;
+                elements.tablesContent.appendChild(p);
+            }
+        }
         function toggleSound() { 
             reproducirSonidoTap(); 
             gameState.soundEnabled = !gameState.soundEnabled; 
@@ -1136,6 +1354,7 @@
         function createConfetti() { const colors = ['#d946ef', '#ff9f43', '#3b82f6', '#10b981', '#facc15']; for (let i = 0; i < 100; i++) { setTimeout(() => { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = `${Math.random() * 100}%`; c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]; c.style.width = c.style.height = `${Math.random() * 10 + 5}px`; document.body.appendChild(c); setTimeout(() => c.remove(), 3000); }, i * 30); } }
 
         elements.helpModal.addEventListener('click', e => { if (e.target === elements.helpModal) toggleHelpModal(); });
+        elements.tablesModal.addEventListener('click', e => { if (e.target === elements.tablesModal) toggleTablesModal(); });
 
         Sounds.init();
         generateDivision();
