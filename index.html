@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -486,6 +485,17 @@
             .division-wrapper { font-size: 2.1rem; }
             .digit-box, .answer-box, .divisor-box { width: 3.6rem; height: 3.6rem; }
         }
+        /* Añadido para evitar solapamiento del título en móviles */
+        @media (max-width: 767px) {
+            /* Añade espacio superior al contenedor SOLO en la pantalla de juego */
+            body > div > div.screen.active > .container {
+                padding-top: 80px; /* Altura de los iconos + espacio extra */
+            }
+            /* Asegura que el h1 dentro del game-header no tenga margen extra que pueda causar problemas */
+            .game-header h1 {
+                margin-top: 0;
+            }
+        }
     </style>
 <script type="importmap">
 {
@@ -966,8 +976,8 @@
                     <button className="fixed-help-btn" onClick={() => { playTap(); setShowHelp(true); }}>❓</button>
 
                     <div className="container">
-                        <h1>División por una cifra</h1>
                         <div className="game-header">
+                            <h1>División por una cifra</h1>
                             {!config.isInfinite && !config.isManual && (
                                 <>
                                     <div className="progress-text">{config.questionIndex + 1}/{config.totalQuestions}</div>
@@ -1247,75 +1257,75 @@
 
             return (
                 <>
-                {screen === 'start' && (
-                    <div className="screen start-screen active">
-                        <div className="container">
-                            <h1>La división entre una cifra</h1>
-                            <p>Practica la <span className="magnitude-highlight">división entre una cifra</span> y aprende jugando</p>
-                            <div className="hint-card">
-                                Recuerda que en la <span className="magnitude-highlight">división</span>, vamos <span className="magnitude-highlight">de izquierda a derecha</span>. Si tienes dudas, pulsa el botón de ayuda. <br/><br/><strong>¡Buena suerte!</strong>
-                            </div>
-                            <div className="btn-group">
-                                <button className="btn" onClick={() => startGame(false)}>Comenzar</button>
-                                <button className="btn btn-primary" onClick={showManualMode}>Manual</button>
-                            </div>
-                            <img src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png" alt="Niños estudiando" className="start-image"/>
-                        </div>
-                    </div>
-                )}
-                {screen === 'manual_setup' && (
-                    <div className="screen active">
-                        <div className="container">
-                            <h1>Modo Manual</h1>
-                            <p>Introduce tu propia división para practicar.</p>
-                            <div className="input-group">
-                                <label htmlFor="manualDividend">Dividendo (entre 10 y 9999)</label>
-                                <input type="number" id="manualDividend" placeholder="Ej: 456" value={manualDiv} onChange={(e) => setManualDiv(e.target.value)} />
-                            </div>
-                            <div className="input-group">
-                                <label htmlFor="manualDivisor">Divisor (una cifra)</label>
-                                <input type="number" id="manualDivisor" placeholder="Ej: 5" value={manualDivisor} onChange={(e) => setManualDivisor(e.target.value)} />
-                            </div>
-                            <div className="manual-error">{errorMsg}</div>
-                            <div className="btn-group">
-                                <button className="btn btn-success" onClick={startManual}>Empezar</button>
-                                <button className="btn" onClick={() => { playTap(); setScreen('start'); }}>Atrás</button>
+                    {screen === 'start' && (
+                        <div className="screen start-screen active">
+                            <div className="container">
+                                <h1>La división entre una cifra</h1>
+                                <p>Practica la <span className="magnitude-highlight">división entre una cifra</span> y aprende jugando</p>
+                                <div className="hint-card">
+                                    Recuerda que en la <span className="magnitude-highlight">división</span>, vamos <span className="magnitude-highlight">de izquierda a derecha</span>. Si tienes dudas, pulsa el botón de ayuda. <br/><br/><strong>¡Buena suerte!</strong>
+                                </div>
+                                <div className="btn-group">
+                                    <button className="btn" onClick={() => startGame(false)}>Comenzar</button>
+                                    <button className="btn btn-primary" onClick={showManualMode}>Manual</button>
+                                </div>
+                                <img src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png" alt="Niños estudiando" className="start-image"/>
                             </div>
                         </div>
-                    </div>
-                )}
-                {screen === 'game' && config && (
-                    <GameScreen 
-                        config={config} 
-                        soundEnabled={soundEnabled}
-                        setSoundEnabled={setSoundEnabled}
-                        onExit={() => { playTap(); setScreen('start'); }}
-                        onFinishGame={handleFinishGame}
-                        onNextLevel={handleNextLevel}
-                        onNewManual={showManualMode}
-                        onUserInteraction={handleUserInteraction}
-                    />
-                )}
-                {screen === 'final' && (
-                    <div className="screen final-screen active">
-                        <div className="container">
-                            <h1>La división entre una cifra</h1>
-                            {finalScore === 100 && <div className="trophy">🏆</div>}
-                            <div className="final-score" style={{ color: 'var(--final-score-color)' }}>{finalScore}</div>
-                            <div className="final-time">Tiempo: {finalTimeStr}</div>
-                            <p className="final-message">
-                                {finalScore === 100 ? '¡Enhorabuena, puntuación máxima!' : '¡Buen trabajo! Sigue practicando'}
-                            </p>
-                            <div className="btn-group">
-                                <button className="btn" style={{ backgroundColor: '#f59e42' }} onClick={() => { playTap(); setScreen('start'); }}>Volver al menú</button>
-                                <button className="btn btn-primary" onClick={() => startGame(true)}>Entrenamiento infinito</button>
+                    )}
+                    {screen === 'manual_setup' && (
+                        <div className="screen active">
+                            <div className="container">
+                                <h1>Modo Manual</h1>
+                                <p>Introduce tu propia división para practicar.</p>
+                                <div className="input-group">
+                                    <label htmlFor="manualDividend">Dividendo (entre 10 y 9999)</label>
+                                    <input type="number" id="manualDividend" placeholder="Ej: 456" value={manualDiv} onChange={(e) => setManualDiv(e.target.value)} />
+                                </div>
+                                <div className="input-group">
+                                    <label htmlFor="manualDivisor">Divisor (una cifra)</label>
+                                    <input type="number" id="manualDivisor" placeholder="Ej: 5" value={manualDivisor} onChange={(e) => setManualDivisor(e.target.value)} />
+                                </div>
+                                <div className="manual-error">{errorMsg}</div>
+                                <div className="btn-group">
+                                    <button className="btn btn-success" onClick={startManual}>Empezar</button>
+                                    <button className="btn" onClick={() => { playTap(); setScreen('start'); }}>Atrás</button>
+                                </div>
                             </div>
-                            <p className="credit">Created by Manuel J. Ventura</p>
-                            <img src="https://github.com/ManuelVS8/Efectos_audio/blob/1e2a36cdd1f8bedcb578a30f5ec5cc8f21c287fe/Siurot.png?raw=true" alt="Logo del colegio" className="school-logo" />
                         </div>
-                        {finalScore === 100 && <Confetti />}
-                    </div>
-                )}
+                    )}
+                    {screen === 'game' && config && (
+                        <GameScreen 
+                            config={config} 
+                            soundEnabled={soundEnabled}
+                            setSoundEnabled={setSoundEnabled}
+                            onExit={() => { playTap(); setScreen('start'); }}
+                            onFinishGame={handleFinishGame}
+                            onNextLevel={handleNextLevel}
+                            onNewManual={showManualMode}
+                            onUserInteraction={handleUserInteraction}
+                        />
+                    )}
+                    {screen === 'final' && (
+                        <div className="screen final-screen active">
+                            <div className="container">
+                                <h1>La división entre una cifra</h1>
+                                {finalScore === 100 && <div className="trophy">🏆</div>}
+                                <div className="final-score" style={{ color: 'var(--final-score-color)' }}>{finalScore}</div>
+                                <div className="final-time">Tiempo: {finalTimeStr}</div>
+                                <p className="final-message">
+                                    {finalScore === 100 ? '¡Enhorabuena, puntuación máxima!' : '¡Buen trabajo! Sigue practicando'}
+                                </p>
+                                <div className="btn-group">
+                                    <button className="btn" style={{ backgroundColor: '#f59e42' }} onClick={() => { playTap(); setScreen('start'); }}>Volver al menú</button>
+                                    <button className="btn btn-primary" onClick={() => startGame(true)}>Entrenamiento infinito</button>
+                                </div>
+                                <p className="credit">Created by Manuel J. Ventura</p>
+                                <img src="https://github.com/ManuelVS8/Efectos_audio/blob/1e2a36cdd1f8bedcb578a30f5ec5cc8f21c287fe/Siurot.png?raw=true" alt="Logo del colegio" className="school-logo" />
+                            </div>
+                            {finalScore === 100 && <Confetti />}
+                        </div>
+                    )}
                 </>
             );
         };
