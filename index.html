@@ -4,1334 +4,918 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>División por una cifra</title>
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        /* ══ Variables y reset ══ */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --primary: #3b82f6;
-            --secondary: #ff9f43;
+            --blue-dark: #04032B;
+            --blue-700: #1a3a5f;
+            --blue-600: #254fba;
+            --orange: #f59e42;
+            --bg-grad-1: #1a3a5f;
+            --bg-grad-2: #0d2340;
+            --white: #ffffff;
+            --green: #2ecc71;
+            --red: #e74c3c;
+            --panel: #E8EAFF;
             --success: #10b981;
             --danger: #ef4444;
-            --light-success: #86efac;
-            --light-danger: #fca5a5;
-            --bg-start: #1a3a5f;
-            --bg-end: #0d2340;
-            --card-bg: #FFFFFF;
+            --primary: #3b82f6;
+            --secondary: #f59e42;
             --text-dark: #1e3a8a;
             --text-medium: #334155;
             --text-light: #6b7280;
-            --hint-bg: #e0effc;
-            --shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
+            --shadow: 0 12px 24px rgba(0,0,0,.12);
             --transition: 180ms ease;
-            --final-score-color: #0055e0;
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+
+        /* ══ Body ══ */
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(to bottom, var(--bg-start), var(--bg-end));
-            color: var(--text-dark);
-            line-height: 1.6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            overflow-x: hidden;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px 20px;
         }
-        /* Contenedor principal responsive */
-        .container {
-            width: 95vw; /* Ocupa el 95% del ancho de la ventana */
-            max-width: 1400px; /* Límite para pantallas muy grandes */
-            background-color: var(--card-bg);
-            border-radius: 20px;
+
+        /* ══ Contenedor principal ══ */
+        .game-container {
+            background: var(--white);
+            border-radius: 16px;
             box-shadow: var(--shadow);
-            padding: 20px;
-            margin: 0 auto 20px auto; /* Centrado horizontal */
+            padding: 1.5rem;
+            max-width: 980px;
+            width: 100%;
+            min-height: 0;
             position: relative;
-            z-index: 1;
-            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
-        h1, h2, h3 {
-            margin-bottom: 16px;
-            color: var(--text-dark);
-            font-weight: 700;
+
+        /* ══ Screens ══ */
+        .screen { display: none; animation: fadeIn .4s ease; flex-direction: column; flex: 1; width: 100%; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ══ Tipografía ══ */
+        h1 { color: var(--blue-dark); font-size: clamp(1.8rem,5vw,2.8rem); font-weight: 900; letter-spacing: .5px; text-align: center; margin-bottom: .5rem; }
+        h2 { color: var(--blue-dark); font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; }
+        h3 { color: var(--blue-dark); font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+        .subtitle { color: var(--blue-700); font-size: clamp(1rem,3vw,1.3rem); font-weight: 600; line-height: 1.4; text-align: center; margin-bottom: .8rem; }
+
+        /* ══ Botón mute (igual al modelo) ══ */
+        .mute-btn {
+            position: absolute; top: 1rem; right: 1rem;
+            background: linear-gradient(135deg, var(--orange) 0%, #e67e22 100%);
+            color: #fff; border: 2px solid #fff;
+            width: 42px; height: 42px; border-radius: 50%;
+            cursor: pointer; font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center; z-index: 100;
         }
-        h1 { font-size: 2.2em; text-align: center; }
-        h2 { font-size: 1.6em; }
-        h3 { font-size: 1.3em; }
-        p {
-            margin-bottom: 16px;
-            color: var(--text-light);
+        .mute-btn:hover { transform: scale(1.08); }
+
+        /* ══ Botones tabla y ayuda (solo en pantalla juego) ══ */
+        .fixed-tables-btn, .fixed-help-btn {
+            position: absolute; top: 1rem;
+            width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--blue-700) 0%, var(--blue-600) 100%);
+            border: 2px solid #fff; border-radius: 50%;
+            color: white; cursor: pointer; font-size: 18px; z-index: 100;
         }
+        .fixed-tables-btn { left: 1rem; }
+        .fixed-help-btn   { left: 4rem; }
+        .fixed-tables-btn:hover, .fixed-help-btn:hover { transform: scale(1.08); }
+
+        /* ══ Botones de acción ══ */
         .btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all var(--transition);
-            text-align: center;
-            min-height: 44px;
-            min-width: 44px;
-            position: relative;
-            z-index: 10;
+            color: #fff; border: none; border-radius: 12px; cursor: pointer; font-weight: 800;
+            transition: transform .1s ease, box-shadow .2s ease;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; gap: 8px; font-family: inherit;
         }
-        .btn:hover {
-            filter: brightness(1.1);
-            transform: translateY(-2px);
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,.15); }
+        .btn:active { transform: translateY(0); }
+        .btn-start  { background: var(--orange); margin: 1rem auto; padding: .75rem 2rem; height: 55px; font-size: 1.3rem; min-width: 200px; }
+        .btn-primary { background: var(--blue-600); padding: .75rem 1.5rem; height: 50px; }
+        .btn-success { background: var(--green);    padding: .75rem 1.5rem; height: 50px; }
+        .btn-danger  { background: var(--red);      padding: .75rem 1.5rem; height: 50px; }
+        .btn-group, .btn-group-row {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            justify-content: center; margin-top: 1rem;
         }
-        .btn-primary { background-color: var(--primary); }
-        .btn-success { background-color: var(--success); }
-        .btn-danger { background-color: var(--danger); }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-            position: relative;
-            z-index: 10;
+
+        /* ══ PANTALLA INICIO ══ */
+        .start-content { display: flex; flex-direction: column; align-items: center; flex: 1; padding: 1rem; text-align: center; }
+        .advice-box {
+            background: var(--panel); border-left: 5px solid var(--blue-700);
+            padding: 1.5rem; border-radius: 12px; color: var(--blue-700);
+            max-width: 800px; font-size: 1.2rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: left;
         }
-        .btn-group-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 10px;
-            position: relative;
-            z-index: 10;
-        }
-        .screen {
-            animation: fadeIn 0.5s ease;
-            position: relative;
-            z-index: 5;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .start-screen {
-            text-align: center;
-        }
-        .hint-card {
-            background-color: var(--hint-bg);
-            border-radius: 12px;
-            padding: 18px;
-            margin: 20px auto;
-            max-width: 90%;
-            color: var(--text-medium);
-            font-size: 1em;
-        }
-        .hint-card span {
-            font-weight: 700;
-            color: var(--secondary);
-        }
-        .start-image {
-            max-width: 90%;
-            margin: 20px auto 0;
-            display: block;
-            border-radius: 12px;
-        }
-        .fixed-sound-btn, .fixed-help-btn, .fixed-tables-btn {
-            position: fixed;
-            top: 20px;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255, 255, 255, 0.9);
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            color: var(--primary);
-            cursor: pointer;
-            transition: all var(--transition);
-            z-index: 1000;
-            box-shadow: var(--shadow);
-            font-size: 24px;
-        }
-        .fixed-sound-btn { left: 20px; }
-        .fixed-help-btn { right: 20px; }
-        .fixed-tables-btn { left: 80px; }
-        .fixed-sound-btn:hover, .fixed-help-btn:hover, .fixed-tables-btn:hover {
-            background-color: var(--primary);
-            color: white;
-            transform: scale(1.1);
-        }
+        .advice-box .key { color: var(--orange); font-weight: 800; }
+        .advice-anim-text { display: block; text-align: center; font-weight: 900; margin-top: 1rem; font-size: 1.5rem; }
+        .start-image-container { width: 100%; display: flex; justify-content: center; margin-top: auto; }
+        .start-image { max-width: 300px; width: 100%; height: auto; border-radius: 12px; }
+
+        /* ══ JUEGO: header y progreso ══ */
         .game-header {
-            position: relative;
-            min-height: 60px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            width: 100%;
+            margin-bottom: 16px; display: flex;
+            justify-content: center; align-items: center;
+            flex-direction: column; width: 100%;
         }
         .guide-text {
-            color: var(--text-dark);
-            font-weight: 700;
-            font-size: 1.2em;
-            text-align: center;
-            margin-top: 10px;
-            min-height: 1.8em;
-            animation: fadeIn 0.3s ease;
+            color: var(--blue-dark); font-weight: 700; font-size: 1.1em;
+            text-align: center; min-height: 1.8em;
         }
         .progress-bar {
-            height: 8px;
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            width: 100%;
+            height: 8px; background: #e6f2ff; border-radius: 999px;
+            overflow: hidden; width: 100%; border: 1px solid #d3e2ff; margin-bottom: 8px;
         }
-        .progress-fill {
-            height: 100%;
-            background-color: var(--secondary);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-        .progress-text {
-            text-align: right;
-            font-size: 14px;
-            color: var(--text-light);
-            margin-bottom: 8px;
-            width: 100%;
-        }
+        .progress-fill { height: 100%; background: var(--orange); border-radius: 999px; transition: width .3s ease; }
+        .progress-text { text-align: right; font-size: 14px; color: var(--text-light); margin-bottom: 6px; width: 100%; }
+
+        /* ══ GRID DIVISIÓN ══ */
         .division-wrapper {
-            display: grid;
-            align-items: start;
-            justify-content: center;
-            margin: 25px auto;
-            position: relative;
-            width: fit-content;
-            font-family: 'Courier New', monospace;
-            font-size: 1.6rem;
+            display: grid; align-items: start; justify-content: center;
+            margin: 12px auto; position: relative; width: fit-content;
+            font-family: 'Courier New', monospace; font-size: 1.6rem;
         }
         .digit-box, .answer-box {
-            width: 2.8rem;
-            height: 2.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+            width: 2.8rem; height: 2.8rem;
+            display: flex; align-items: center; justify-content: center; font-weight: bold;
         }
         .answer-box {
-            border: 2px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1.4rem;
-            background-color: #f9fafb;
-            transition: all 0.3s;
-            cursor: pointer;
+            border: 2px solid #d1d5db; border-radius: .5rem;
+            background: #f9fafb; transition: all .3s;
         }
-        .answer-box.current {
-            border-color: #a855f7;
-            background-color: #faf5ff;
-            transform: scale(1.1);
-        }
-        .answer-box.filled {
-            border-color: #4ade80;
-            background-color: #f0fdf4;
-        }
-        .answer-box.correct {
-            border-color: var(--success);
-            background-color: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-        .answer-box.incorrect {
-            border-color: var(--danger);
-            background-color: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-            animation: shake 0.5s ease;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
+        .answer-box.current   { border-color: #a855f7; background: #faf5ff; transform: scale(1.1); }
+        .answer-box.filled    { border-color: #4ade80; background: #f0fdf4; }
+        .answer-box.correct   { border-color: var(--success); background: rgba(16,185,129,.2); color: var(--success); }
+        .answer-box.incorrect { border-color: var(--danger);  background: rgba(239,68,68,.2);  color: var(--danger); animation: shake .5s ease; }
+        .digit-box.correct    { color: var(--success); }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+        /* ══ BANCO DE DÍGITOS — PC: 1 fila, móvil: 2 filas de 5 ══ */
         .digit-bank {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px auto;
-            width: 100%;
-            max-width: 320px;
+            display: flex; justify-content: center; flex-wrap: nowrap;
+            gap: 8px; margin: 12px auto; width: 100%; max-width: 600px;
         }
         .digit-btn {
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--card-bg);
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 22px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition);
+            flex: 1; min-width: 0; height: 52px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--white); border: 2px solid #e0e0e0; border-radius: 12px;
+            font-size: 24px; font-weight: 700; cursor: pointer;
+            transition: all var(--transition); font-family: inherit;
         }
-        .digit-btn:hover {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            transform: translateY(-2px);
+        .digit-btn:hover { background: var(--blue-600); color: #fff; border-color: var(--blue-600); transform: translateY(-2px); }
+
+        /* En móvil: 2 filas de 5 botones más grandes */
+        @media (max-width: 560px) {
+            .digit-bank {
+                flex-wrap: wrap;
+                max-width: 100%;
+                gap: 6px;
+            }
+            .digit-btn {
+                flex: 0 0 calc(20% - 6px);
+                height: 52px;
+                font-size: 22px;
+            }
+            .division-wrapper { font-size: 1.3rem; }
+            .digit-box, .answer-box { width: 2.4rem; height: 2.4rem; }
         }
+
+        /* ══ POPUP SELECCIÓN ══ */
         .question-popup {
-            position: relative;
-            margin: 40px auto;
-            background-color: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            z-index: 10;
-            text-align: center;
-            max-width: 90%;
-            width: fit-content;
+            margin: 12px auto; background: white; border-radius: 16px; padding: 16px 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,.2); text-align: center; max-width: 90%; width: fit-content;
         }
-        .question-popup h3 {
-            margin-bottom: 15px;
-            color: var(--text-dark);
-            font-size: 1.1em;
-        }
+        .question-popup h3 { margin-bottom: 12px; color: var(--blue-dark); font-size: 1.1em; }
+
+        /* ══ ÁREA DEL GRID ══ */
+        #divisionArea { display: flex; justify-content: center; min-height: 240px; align-items: flex-start; }
+
+        /* ══ ZONA INTERACTIVA ══ */
+        #interactZone { min-height: 100px; }
+
+        /* ══ FEEDBACK ══ */
         .feedback {
-            margin: 20px 0;
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 1.2em;
-            font-weight: 700;
-            text-align: center;
-            width: 100%;
-            max-width: 500px;
-            left: 50%;
-            transform: translateX(-50%);
-            position: relative;
-            display: none;
+            margin: 10px 0; padding: 14px; border-radius: 12px;
+            font-size: 1em; font-weight: 700; text-align: center;
+            width: 100%; display: none;
         }
-        .feedback.show {
-            display: block;
-            animation: slideDown 0.3s ease-out;
+        .feedback.show { display: block; animation: fadeIn .3s ease; }
+        .feedback.success { background: rgba(46,204,113,.15); border: 3px solid var(--green); color: #1a8a4a; }
+        .feedback.error   { background: rgba(231,76,60,.15);  border: 3px solid var(--red);   color: var(--red); }
+
+        /* ══ BOTONES ACCIÓN más compactos ══ */
+        .btn-group, .btn-group-row {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            justify-content: center; margin-top: 10px;
         }
-        .feedback.success {
-            background-color: rgba(16, 185, 129, 0.15);
-            border: 3px solid var(--success);
-            color: var(--success);
-        }
-        .feedback.error {
-            background-color: rgba(239, 68, 68, 0.15);
-            border: 3px solid var(--danger);
-            color: var(--danger);
-        }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
+        .btn-start  { background: var(--orange); margin: .5rem auto; padding: .6rem 1.8rem; height: 50px; font-size: 1.15rem; min-width: 160px; }
+        .btn-primary { background: var(--blue-600); padding: .6rem 1.2rem; height: 46px; font-size: 1rem; }
+        .btn-success { background: var(--green);    padding: .6rem 1.2rem; height: 46px; font-size: 1rem; }
+        .btn-danger  { background: var(--red);      padding: .6rem 1.2rem; height: 46px; font-size: 1rem; }
+
+        /* ══ MODAL ══ */
         .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            visibility: visible;
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,.5); display: none;
+            align-items: center; justify-content: center; z-index: 1000;
         }
+        .modal.active { display: flex; animation: fadeIn .3s ease; }
         .modal-content {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 25px;
-            max-width: 90%;
-            width: 320px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: fadeIn 0.3s ease;
+            background: var(--white); border-radius: 16px; padding: 25px;
+            max-width: 90%; width: 320px; max-height: 90vh; overflow-y: auto;
         }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-light);
-        }
-        .unstyled-list p {
-            margin-bottom: 10px;
-            color: var(--text-medium);
-            font-size: 1em;
-        }
-        .final-screen {
-            text-align: center;
-        }
-        .trophy {
-            font-size: 60px;
-            margin: 20px 0;
-            animation: trophyAnimation 2s ease-in-out infinite;
-        }
-        @keyframes trophyAnimation {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.1) rotate(-5deg); }
-            50% { transform: scale(1.2) rotate(5deg); }
-            75% { transform: scale(1.1) rotate(-5deg); }
-        }
-        .final-score {
-            font-size: 2.8em;
-            font-weight: 700;
-            color: var(--final-score-color) !important;
-            margin: 20px 0;
-        }
-        .final-time {
-            font-size: 18px;
-            color: var(--text-light);
-            margin-bottom: 20px;
-        }
-        .final-message {
-            font-size: 1.5em;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 20px;
-        }
-        .credit {
-            margin-top: 20px;
-            font-size: 12px;
-            color: var(--text-light);
-        }
-        .school-logo {
-            max-width: 120px;
-            margin: 20px auto;
-            display: block;
-        }
-        /* Improved Confetti */
-        .confetti-piece {
-            position: absolute;
-            opacity: 0;
-            animation: confettiRain 4s linear infinite;
-        }
-        @keyframes confettiRain {
-            0% { opacity: 1; top: -10px; transform: rotate(0deg); }
-            100% { opacity: 0; top: 100vh; transform: rotate(720deg); }
-        }
-        .magnitude-highlight {
-            color: #ff9f43;
-            font-weight: 700;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light); }
+        .unstyled-list p { margin-bottom: 10px; color: var(--text-medium); font-size: 1em; }
+        .tables-content p { margin-bottom: 8px; color: var(--text-medium); font-family: 'Courier New', monospace; }
+        .magnitude-highlight { color: var(--orange); font-weight: 700; }
+
+        /* ══ PANTALLA FINAL ══ */
+        .results { display: flex; flex-direction: column; align-items: center; gap: .8rem; text-align: center; flex: 1; justify-content: center; padding: 1rem; }
+        #trophyEl { display: none; font-size: 5.5rem; animation: bounce 1s ease infinite; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+        .big-score    { font-size: clamp(3rem,8vw,4.5rem); color: var(--blue-600); font-weight: 900; margin: .5rem 0; }
+        .score-title  { font-size: 1.5rem; color: var(--blue-700); font-weight: 700; }
+        .final-time   { font-size: 1.3rem; color: var(--blue-700); font-weight: 600; }
+        .final-message { font-size: clamp(1.1rem,3vw,1.5rem); font-weight: 800; color: var(--blue-700); margin-bottom: 1rem; }
+        .credit       { font-weight: 700; color: #555; margin-top: 1rem; font-size: .9rem; }
+        .school-logo  { width: 180px; margin-top: 1rem; }
+
+        /* ══ CONFETTI ══ */
+        .confetti { position: fixed; width: 12px; height: 12px; border-radius: 50%; animation: confetti-fall 3s linear forwards; z-index: 999; pointer-events: none; }
+        @keyframes confetti-fall { 0%{transform:translate(0,-20px) rotate(0);opacity:1} 100%{transform:translate(var(--tx),var(--ty)) rotate(360deg);opacity:0} }
+
+        /* ══ MANUAL ══ */
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--blue-dark); }
         .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-family: 'Poppins', sans-serif;
-            text-align: center;
+            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px;
+            font-size: 1.1em; font-family: inherit; text-align: center;
         }
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        .manual-error {
-            color: var(--danger);
-            font-weight: 700;
-            margin-top: 10px;
-            text-align: center;
-        }
-        @media (min-width: 768px) {
-            .container { 
-                padding: 25px; 
-            }
-            h1 { font-size: 2.5em; }
-            .division-wrapper { font-size: 1.9rem; }
-            .digit-box, .answer-box, .divisor-box { width: 3.2rem; height: 3.2rem; }
-            .digit-btn { width: 54px; height: 54px; font-size: 24px; }
-        }
-        @media (min-width: 1024px) {
-            .container { 
-                padding: 30px; 
-            }
-            h1 { font-size: 2.8em; }
-            .division-wrapper { font-size: 2.1rem; }
-            .digit-box, .answer-box, .divisor-box { width: 3.6rem; height: 3.6rem; }
-        }
-        /* Añadido para evitar solapamiento del título en móviles */
-        @media (max-width: 767px) {
-            /* Añade espacio superior al contenedor SOLO en la pantalla de juego */
-            body > div > div.screen.active > .container {
-                padding-top: 80px; /* Altura de los iconos + espacio extra */
-            }
-            /* Asegura que el h1 dentro del game-header no tenga margen extra que pueda causar problemas */
-            .game-header h1 {
-                margin-top: 0;
-            }
-        }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "use-sound": "https://aistudiocdn.com/use-sound@^5.0.0"
-  }
-}
-</script>
+        .input-group input:focus { outline: none; border-color: var(--blue-600); }
+        .manual-error { color: var(--red); font-weight: 700; margin-top: 10px; text-align: center; min-height: 1.5em; }
+</style>
 </head>
 <body>
-    <div id="root"></div>
+<div class="game-container">
 
-    <script type="text/babel">
-        // --- LOGIC UTILS ---
-        
-        const calculateMinInteractions = (steps) => {
-            let min = 1; // 1 for initial selection ("¿Cuántas cifras...?")
-            
-            steps.forEach(step => {
-                // 1 click for quotient digit
-                min += 1; 
-                
-                if (step.isZeroQuotient) {
-                    // Zero Quotient: No remainder subtraction input.
-                    // Just bring down digit input if it exists
-                    if (step.digitToBringDown !== null) {
-                        min += 1;
-                    }
-                } else {
-                    // Normal Step:
-                    // Remainder digits (e.g. remainder 5 -> 1 click, 12 -> 2 clicks)
-                    min += step.remainder.toString().length;
-                    
-                    // Bring down digit input if it exists
-                    if (step.digitToBringDown !== null) {
-                        min += 1;
-                    }
-                }
-            });
-            return min;
-        };
+<!-- ══════════════════════ INICIO ══════════════════════ -->
+<div id="screenStart" class="screen active">
+    <header>
+        <h1>División entre una cifra</h1>
+        <div class="subtitle">Aprende a dividir entre un número de una cifra</div>
+    </header>
+    <div class="start-content">
+        <div class="advice-box">
+            Dividir es sencillo. Recuerda los pasos:
+            <span class="key">seleccionar</span> una o dos cifras del dividendo,
+            <span class="key">buscar</span> en la tabla y
+            <span class="key">restar</span>, y por último
+            <span class="key">bajar</span> la siguiente cifra.
+            Cuando no haya más cifras que bajar, habrás terminado.
+            Si sigues estos pasos, todo irá bien.
+            <div class="advice-anim-text">¡Ánimo!</div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-start" onclick="startGame(false)">Comenzar</button>
+            <button class="btn btn-start" style="background:var(--blue-600);" onclick="showManualSetup()">Manual</button>
+        </div>
+        <div class="start-image-container">
+            <img class="start-image"
+                 src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png"
+                 alt="Niños estudiando">
+        </div>
+    </div>
+</div>
 
-        const calculateDivisionSteps = (dividendStr, divisor) => {
-            const steps = [];
-            const dividendDigits = dividendStr.split('').map(Number);
-            
-            let currentPos = 0;
-            let currentPartialStr = "";
-            let initialTake = 0;
-            let tempVal = 0;
-            
-            while (currentPos < dividendDigits.length) {
-                currentPartialStr += dividendDigits[currentPos];
-                tempVal = parseInt(currentPartialStr, 10);
-                currentPos++;
-                initialTake++;
-                
-                if (tempVal >= divisor) {
-                    break;
-                }
+<!-- ══════════════════════ MANUAL ══════════════════════ -->
+<div id="screenManual" class="screen">
+    <header><h1>Modo Manual</h1></header>
+    <div class="start-content">
+        <div class="input-group" style="width:100%;max-width:400px;">
+            <label for="inpDividend">Dividendo (entre 10 y 9999)</label>
+            <input type="number" id="inpDividend" placeholder="Ej: 456">
+        </div>
+        <div class="input-group" style="width:100%;max-width:400px;">
+            <label for="inpDivisor">Divisor (una cifra, 2-9)</label>
+            <input type="number" id="inpDivisor" placeholder="Ej: 5">
+        </div>
+        <div class="manual-error" id="manualError"></div>
+        <div class="btn-group">
+            <button class="btn btn-start" style="background:var(--green);" onclick="startManual()">Empezar</button>
+            <button class="btn btn-start" style="background:var(--blue-600);" onclick="showScreen('screenStart')">Atrás</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════ JUEGO ══════════════════════ -->
+<div id="screenGame" class="screen">
+    <button class="mute-btn"         id="btnSound"      onclick="toggleSound()">🔊</button>
+    <button class="fixed-tables-btn" onclick="openModal('modalTable')">📊</button>
+    <button class="fixed-help-btn"   onclick="openModal('modalHelp')">❓</button>
+
+    <header style="margin-top:2.5rem;">
+        <h1>División por una cifra</h1>
+    </header>
+
+    <div class="game-header">
+        <div class="progress-text" id="progressText" style="display:none"></div>
+        <div class="progress-bar"  id="progressBar"  style="display:none">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="guide-text" id="guideText"></div>
+    </div>
+
+    <div id="divisionArea"></div>
+
+    <div id="interactZone">
+        <div id="questionPopup" class="question-popup" style="display:none">
+            <h3 id="questionText"></h3>
+            <div class="digit-bank" id="questionOptions"></div>
+        </div>
+        <div class="digit-bank" id="digitBank"></div>
+    </div>
+
+    <div class="btn-group-row" id="actionBtns"></div>
+    <div class="feedback" id="feedbackBox"></div>
+</div>
+
+<!-- ══════════════════════ FINAL ══════════════════════ -->
+<div id="screenFinal" class="screen">
+    <header><h1>La división entre una cifra</h1></header>
+    <div class="results">
+        <div id="trophyEl" style="display:none;font-size:5.5rem;animation:bounce 1s ease infinite;">🏆</div>
+        <div class="score-title">Puntuación:</div>
+        <div class="big-score"     id="finalScoreEl">0</div>
+        <div class="final-time">Tiempo: <span id="finalTimeEl">00:00</span></div>
+        <div class="final-message" id="finalMsgEl"></div>
+        <div class="btn-group">
+            <button class="btn btn-start" onclick="showScreen('screenStart')">Volver al menú</button>
+            <button class="btn btn-start" style="background:var(--blue-600);" onclick="startGame(true)">Entrenamiento infinito</button>
+        </div>
+        <div class="credit">Creado por Manuel J. Ventura</div>
+        <img class="school-logo"
+             src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Siurot.png"
+             alt="Logo del colegio">
+    </div>
+</div>
+
+</div><!-- /game-container -->
+
+<!-- ══════════════════════ MODALS ══════════════════════ -->
+<div id="modalHelp" class="modal" onclick="closeModalOnBg(event,'modalHelp')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>¿Cómo dividir?</h2>
+            <button class="modal-close" onclick="closeModal('modalHelp')">&times;</button>
+        </div>
+        <div class="unstyled-list">
+            <p><strong>0. ¿Cuántas cifras cogemos?</strong></p>
+            <p><strong>1. Buscar en la tabla</strong> un número que se acerque sin pasarse</p>
+            <p><strong>2. Multiplicar hasta llegar.</strong> (Multiplica y resta mentalmente)</p>
+            <p><strong>3. Baja la siguiente cifra.</strong></p>
+            <p class="magnitude-highlight" style="margin-top:20px;text-align:center">
+                Recuerda: Cero al cociente, se baja la cifra siguiente.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div id="modalTable" class="modal" onclick="closeModalOnBg(event,'modalTable')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 id="tableTitle">Tabla del ?</h2>
+            <button class="modal-close" onclick="closeModal('modalTable')">&times;</button>
+        </div>
+        <div class="tables-content" id="tableContent"></div>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+// ─────────────────────── AUDIO ───────────────────────
+const SND = {
+    tap:       'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/37b3eb2da9c15c04dfb71dfe1be60f088ea3cdfc/Tap.mp3',
+    correct:   'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Correcto.mp3',
+    error:     'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Error.mp3',
+    victory:   'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Termin%C3%A9.mp3',
+    completed: 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Completado.mp3',
+};
+let soundEnabled = true;
+const audioCache = {};
+function playSound(key) {
+    if (!soundEnabled) return;
+    try {
+        if (!audioCache[key]) { audioCache[key] = new Audio(SND[key]); audioCache[key].volume = 0.7; }
+        const a = audioCache[key];
+        a.currentTime = 0;
+        a.play().catch(() => {});
+    } catch(_) {}
+}
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    document.getElementById('btnSound').textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+// ─────────────────────── NAVIGATION ───────────────────────
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function closeModalOnBg(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ─────────────────────── DIVISION LOGIC ───────────────────────
+function calculateDivisionSteps(dividendStr, divisor) {
+    const steps = [];
+    const digits = dividendStr.split('').map(Number);
+    let pos = 0, partialStr = '', tempVal = 0;
+
+    while (pos < digits.length) {
+        partialStr += digits[pos];
+        tempVal = parseInt(partialStr, 10);
+        pos++;
+        if (tempVal >= divisor) break;
+    }
+
+    if (tempVal < divisor && pos === digits.length) {
+        steps.push({ partialDividend: tempVal, quotientDigit: 0, product: 0,
+            remainder: tempVal, digitToBringDown: null, isZeroQuotient: true, displayString: partialStr });
+        return steps;
+    }
+
+    while (true) {
+        const qd   = Math.floor(tempVal / divisor);
+        const prod = qd * divisor;
+        const rem  = tempVal - prod;
+        const bringDown = pos < digits.length ? digits[pos].toString() : null;
+        const isZero = qd === 0;
+        steps.push({ partialDividend: tempVal, quotientDigit: qd, product: prod,
+            remainder: rem, digitToBringDown: bringDown, isZeroQuotient: isZero, displayString: partialStr });
+        if (bringDown === null) break;
+        partialStr = (isZero ? tempVal : rem).toString() + bringDown;
+        tempVal = parseInt(partialStr, 10);
+        pos++;
+    }
+    return steps;
+}
+
+function calculateMinInteractions(steps) {
+    let min = 1;
+    steps.forEach(s => {
+        min += 1;
+        if (s.isZeroQuotient) { if (s.digitToBringDown !== null) min += 1; }
+        else { min += s.remainder.toString().length; if (s.digitToBringDown !== null) min += 1; }
+    });
+    return min;
+}
+
+function generateRandomDivision() {
+    const divisor  = Math.floor(Math.random() * 8) + 2;
+    const quotient = Math.floor(Math.random() * 900) + 100;
+    const rem      = Math.floor(Math.random() * divisor);
+    return { dividend: (quotient * divisor + rem).toString(), divisor };
+}
+
+// ─────────────────────── GAME STATE ───────────────────────
+let G = {};
+
+function startGame(isInfinite) {
+    playSound('tap');
+    const { dividend, divisor } = generateRandomDivision();
+    const steps = calculateDivisionSteps(dividend, divisor);
+    const minInt = calculateMinInteractions(steps);
+    G = {
+        dividend, divisor, steps,
+        isInfinite, isManual: false,
+        questionIndex: 0, totalQuestions: 3,
+        startTime: Date.now(),
+        globalMinInt: minInt, globalUserInt: 0,
+        // progress
+        phase: 'select_digits',
+        currentStepIndex: 0, digitsTaken: 0,
+        tempInput: '', quotientHistory: [],
+        feedback: null,
+    };
+    buildTableModal();
+    showScreen('screenGame');
+    renderGame();
+}
+
+function showManualSetup() {
+    playSound('tap');
+    document.getElementById('inpDividend').value = '';
+    document.getElementById('inpDivisor').value  = '';
+    document.getElementById('manualError').textContent = '';
+    showScreen('screenManual');
+}
+
+function startManual() {
+    playSound('tap');
+    const d  = parseInt(document.getElementById('inpDividend').value);
+    const ds = parseInt(document.getElementById('inpDivisor').value);
+    const err = document.getElementById('manualError');
+    const dStr = document.getElementById('inpDividend').value.trim();
+    if (isNaN(d) || d < 10 || d > 9999) { err.textContent = 'El dividendo debe estar entre 10 y 9999.'; playSound('error'); return; }
+    if (isNaN(ds) || ds < 2 || ds > 9)  { err.textContent = 'El divisor debe ser una cifra (2-9).'; playSound('error'); return; }
+    const steps = calculateDivisionSteps(dStr, ds);
+    const minInt = calculateMinInteractions(steps);
+    G = {
+        dividend: dStr, divisor: ds, steps,
+        isInfinite: false, isManual: true,
+        questionIndex: 0, totalQuestions: 1,
+        startTime: Date.now(),
+        globalMinInt: minInt, globalUserInt: 0,
+        phase: 'select_digits',
+        currentStepIndex: 0, digitsTaken: 0,
+        tempInput: '', quotientHistory: [],
+        feedback: null,
+    };
+    buildTableModal();
+    showScreen('screenGame');
+    renderGame();
+}
+
+// ─────────────────────── RENDER ───────────────────────
+function renderGame() {
+    renderProgress();
+    renderGuide();
+    renderGrid();
+    renderPopupOrBank();
+    renderActionBtns();
+    renderFeedback();
+}
+
+function renderProgress() {
+    const pt = document.getElementById('progressText');
+    const pb = document.getElementById('progressBar');
+    const pf = document.getElementById('progressFill');
+    if (!G.isInfinite && !G.isManual) {
+        pt.style.display = 'block';
+        pb.style.display = 'block';
+        pt.textContent = `${G.questionIndex + 1}/${G.totalQuestions}`;
+        pf.style.width = `${((G.questionIndex + 1) / G.totalQuestions) * 100}%`;
+    } else {
+        pt.style.display = 'none';
+        pb.style.display = 'none';
+    }
+}
+
+function renderGuide() {
+    let text = '';
+    if (G.phase === 'select_digits')     text = '¿Cuántas cifras del dividendo cogemos?';
+    else if (G.phase === 'quotient')     text = '1. Buscar en la tabla un número que se acerque sin pasarse';
+    else if (G.phase === 'multiply_subtract') text = '2. Multiplicar hasta llegar. (Multiplica y resta mentalmente)';
+    else if (G.phase === 'bring_down') {
+        const s = G.steps[G.currentStepIndex];
+        text = (s && s.isZeroQuotient)
+            ? 'Recuerda: Cero al cociente, se baja la cifra siguiente.'
+            : '3. Baja la siguiente cifra.';
+    }
+    else if (G.phase === 'finished')     text = '¡División terminada! Comprueba tu resultado final.';
+    document.getElementById('guideText').textContent = text;
+}
+
+// ── GRID ──
+function renderGrid() {
+    const area = document.getElementById('divisionArea');
+    area.innerHTML = '';
+
+    const ddo  = G.dividend;
+    const dsr  = G.divisor.toString();
+    const steps = G.steps;
+    const qLen = steps.length;
+    const totalCols = ddo.length + 1 + 1 + qLen;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'division-wrapper';
+    wrapper.style.gridTemplateColumns = `repeat(${totalCols}, 1fr)`;
+    area.appendChild(wrapper);
+
+    const addCell = (cls, row, col, text, extraStyle) => {
+        const d = document.createElement('div');
+        d.className = cls;
+        d.style.gridRow    = row;
+        d.style.gridColumn = col;
+        if (text !== undefined) d.textContent = text;
+        if (extraStyle) Object.assign(d.style, extraStyle);
+        wrapper.appendChild(d);
+        return d;
+    };
+
+    // 1. Dividend digits
+    for (let i = 0; i < ddo.length; i++) addCell('digit-box', 1, i + 1, ddo[i]);
+
+    // 2. Vertical line
+    addCell('', 1, ddo.length + 1, '', { borderLeft: '3px solid #1f2937', height: '100%', display: 'block' });
+
+    // 3. Divisor
+    addCell('digit-box', 1, ddo.length + 2, dsr);
+
+    // 4. Horizontal line
+    addCell('', 2, `${ddo.length + 1} / span ${1 + qLen}`, '', {
+        borderTop: '3px solid #1f2937', height: '0', display: 'block'
+    });
+
+    // 5. Quotient boxes
+    steps.forEach((step, idx) => {
+        const col = ddo.length + 2 + idx;
+        const hasHistory = G.quotientHistory[idx] !== undefined;
+        const isCurrent  = idx === G.currentStepIndex && G.phase === 'quotient';
+        let cls = 'answer-box';
+        let content = '';
+        if (hasHistory)     { cls += ' filled correct'; content = G.quotientHistory[idx].val.toString(); }
+        else if (isCurrent) { cls += ' current'; }
+        addCell(cls, 3, col, content);
+    });
+
+    // 6. Arc
+    if (G.digitsTaken > 0 && G.phase !== 'select_digits') {
+        const arcHolder = document.createElement('div');
+        arcHolder.style.cssText = `grid-row:1; grid-column:1 / span ${G.digitsTaken}; position:relative; height:0;`;
+        const arc = document.createElement('div');
+        arc.style.cssText = `position:absolute; top:-10px; left:0; width:100%; height:15px;
+            border:3px solid var(--danger); border-bottom:none; border-radius:100% 100% 0 0;`;
+        arcHolder.appendChild(arc);
+        wrapper.appendChild(arcHolder);
+    }
+
+    // 7. Logic step rows (remainders + bring-downs)
+    let currentRow = 3;
+    let currentPartialEndCol = G.digitsTaken;
+
+    for (let i = 0; i < steps.length; i++) {
+        if (i > G.currentStepIndex) break;
+        const step = steps[i];
+        const isCurrentStep = i === G.currentStepIndex;
+
+        if (step.isZeroQuotient) {
+            if (step.digitToBringDown !== null) {
+                const show = i < G.currentStepIndex || (isCurrentStep && G.phase === 'finished');
+                if (show) addCell('digit-box', currentRow - 1, currentPartialEndCol + 1, step.digitToBringDown);
+                currentPartialEndCol++;
+            }
+        } else {
+            const remStr   = step.remainder.toString();
+            const startCol = currentPartialEndCol - remStr.length + 1;
+            const showRem  = !isCurrentStep || (isCurrentStep && (G.phase === 'bring_down' || G.phase === 'finished'));
+            const isTyping = isCurrentStep && G.phase === 'multiply_subtract';
+
+            if (showRem) {
+                for (let k = 0; k < remStr.length; k++)
+                    addCell('digit-box correct', currentRow, startCol + k, remStr[k]);
+            } else if (isTyping) {
+                const inp = G.tempInput;
+                const inpStart = currentPartialEndCol - inp.length + 1;
+                for (let k = 0; k < inp.length; k++)
+                    addCell('answer-box current', currentRow, inpStart + k, inp[k]);
             }
 
-            // Edge case
-            if (tempVal < divisor && currentPos === dividendDigits.length) {
-                steps.push({
-                    stepIndex: 0,
-                    partialDividend: tempVal,
-                    quotientDigit: 0,
-                    product: 0,
-                    remainder: tempVal,
-                    digitToBringDown: null,
-                    isZeroQuotient: true,
-                    displayString: currentPartialStr
-                });
-                return steps;
+            if (showRem || isTyping) {
+                if (step.digitToBringDown !== null) {
+                    if (i < G.currentStepIndex)
+                        addCell('digit-box', currentRow, currentPartialEndCol + 1, step.digitToBringDown);
+                    currentPartialEndCol++;
+                }
+                currentRow++;
             }
+        }
+    }
+}
 
-            // Loop
-            while (true) {
-                const quotientDigit = Math.floor(tempVal / divisor);
-                const product = quotientDigit * divisor;
-                const remainder = tempVal - product;
-                const digitToBringDown = currentPos < dividendDigits.length ? dividendDigits[currentPos].toString() : null;
-                const isZeroQuotient = quotientDigit === 0;
+// ── POPUP / DIGIT BANK ──
+function renderPopupOrBank() {
+    const popup = document.getElementById('questionPopup');
+    const bank  = document.getElementById('digitBank');
 
-                steps.push({
-                    stepIndex: steps.length,
-                    partialDividend: tempVal,
-                    quotientDigit,
-                    product,
-                    remainder,
-                    digitToBringDown,
-                    isZeroQuotient,
-                    displayString: currentPartialStr
-                });
+    if (G.phase === 'select_digits') {
+        popup.style.display = 'block';
+        document.getElementById('questionText').textContent = '¿Cuántas cifras del dividendo cogemos?';
+        const opts = document.getElementById('questionOptions');
+        opts.innerHTML = '';
+        [1, 2].forEach(n => {
+            const btn = document.createElement('button');
+            btn.className = 'digit-btn';
+            btn.textContent = n;
+            btn.onclick = () => handleSelectDigits(n);
+            opts.appendChild(btn);
+        });
+        bank.innerHTML = '';
+        return;
+    }
+    popup.style.display = 'none';
 
-                if (digitToBringDown === null) {
-                    break;
-                }
-
-                if (isZeroQuotient) {
-                    currentPartialStr = tempVal.toString() + digitToBringDown;
-                    tempVal = parseInt(currentPartialStr, 10);
-                } else {
-                    currentPartialStr = remainder.toString() + digitToBringDown;
-                    tempVal = parseInt(currentPartialStr, 10);
-                }
-                
-                currentPos++;
+    bank.innerHTML = '';
+    if (G.phase === 'finished' && !G.feedback) {
+        // "Comprobar" aparece en el mismo sitio que el banco
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary';
+        btn.style.cssText = 'margin: 16px auto; height: 52px; font-size: 1.1rem; padding: 0 2rem; min-width: 180px;';
+        btn.textContent = 'Comprobar';
+        btn.onclick = handleCheck;
+        bank.appendChild(btn);
+        return;
+    }
+    if (G.feedback) {
+        // feedback visible: botones continuar/resultados también en el mismo sitio
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px auto;';
+        if (G.isInfinite) {
+            wrap.appendChild(mkBtn('Continuar', 'btn-success', handleNext));
+            wrap.appendChild(mkBtn('Salir', 'btn-danger', () => { playSound('tap'); showScreen('screenStart'); }));
+        } else if (G.isManual) {
+            wrap.appendChild(mkBtn('Nueva', 'btn-primary', () => { playSound('tap'); showManualSetup(); }));
+            wrap.appendChild(mkBtn('Inicio', '', () => { playSound('tap'); showScreen('screenStart'); }));
+        } else {
+            if (G.questionIndex + 1 < G.totalQuestions) {
+                wrap.appendChild(mkBtn('Continuar', 'btn-success', handleNext));
+            } else {
+                wrap.appendChild(mkBtn('Resultados', 'btn-success', showFinal));
             }
-            return steps;
-        };
+        }
+        bank.appendChild(wrap);
+        return;
+    }
+    if (G.phase !== 'finished') {
+        for (let d = 0; d <= 9; d++) {
+            const btn = document.createElement('button');
+            btn.className = 'digit-btn';
+            btn.textContent = d;
+            btn.onclick = () => handleDigitClick(d);
+            bank.appendChild(btn);
+        }
+    }
+}
 
-        const generateRandomDivision = () => {
-            // Updated Logic: Always guarantee 3 digits in quotient.
-            // This ensures exactly 2 bring down steps.
-            const divisor = Math.floor(Math.random() * 8) + 2; // 2 to 9
-            
-            // Random Quotient between 100 and 999 (3 digits)
-            const quotient = Math.floor(Math.random() * 900) + 100;
-            
-            const remainder = Math.floor(Math.random() * divisor);
-            const dividend = (quotient * divisor + remainder).toString();
-            
-            // Math proof:
-            // If dividend ends up being 3 digits (e.g., 200), then Dividend/Divisor = 100.
-            // 200 / 2 = 100. First digit 2 >= 2. Take 1. 
-            // If dividend ends up being 4 digits (e.g. 1800), then 1800 / 2 = 900.
-            // First digit 1 < 2. Take 2.
-            // This satisfies the user requirement automatically by math properties.
-            
-            return { dividend, divisor };
-        };
+// ── ACTION BUTTONS: ahora renderizados dentro de interactZone ──
+function renderActionBtns() {
+    document.getElementById('actionBtns').innerHTML = '';
+}
 
-        // --- HOOKS ---
+function mkBtn(label, cls, fn) {
+    const b = document.createElement('button');
+    b.className = 'btn ' + cls;
+    b.textContent = label;
+    b.onclick = fn;
+    return b;
+}
 
-        const useSound = (url, options = {}) => {
-            const { volume = 1, soundEnabled = true } = options;
-            const [audio] = React.useState(() => {
-                const a = new Audio(url);
-                a.volume = volume;
-                return a;
-            });
+// ── FEEDBACK ──
+function renderFeedback() {
+    const box = document.getElementById('feedbackBox');
+    if (!G.feedback) { box.className = 'feedback'; box.textContent = ''; return; }
+    box.className = 'feedback show ' + G.feedback.type;
+    box.textContent = G.feedback.msg;
+}
 
-            React.useEffect(() => {
-                audio.volume = volume;
-            }, [volume]);
+// ─────────────────────── HANDLERS ───────────────────────
+function handleSelectDigits(n) {
+    playSound('tap');
+    G.globalUserInt++;
+    const first = parseInt(G.dividend[0]);
+    const valid = (n === 1 && first >= G.divisor) ||
+                  (n === 2 && first < G.divisor && G.dividend.length >= 2);
+    if (valid) {
+        playSound('correct');
+        G.digitsTaken = n;
+        G.phase = 'quotient';
+    } else {
+        playSound('error');
+    }
+    renderGame();
+}
 
-            const play = () => {
-                if (soundEnabled) {
-                    audio.currentTime = 0;
-                    audio.play().catch(e => console.log("Audio play error", e));
-                }
-            };
-            return [play];
-        };
+function handleDigitClick(d) {
+    if (G.phase === 'finished') return;
+    playSound('tap');
+    G.globalUserInt++;
+    const step = G.steps[G.currentStepIndex];
 
-        // --- COMPONENTS ---
+    if (G.phase === 'quotient') {
+        if (d === step.quotientDigit) {
+            playSound('correct');
+            G.quotientHistory[G.currentStepIndex] = { val: d, correct: true };
+            if (step.isZeroQuotient) {
+                G.phase = step.digitToBringDown !== null ? 'bring_down' : 'finished';
+            } else {
+                G.phase = 'multiply_subtract';
+                G.tempInput = '';
+            }
+        } else {
+            playSound('error');
+        }
 
-        const GridRenderer = ({ dividend, divisor, logicSteps, progress }) => {
-            const ddo = dividend;
-            const dsr = divisor.toString();
-            const qLen = logicSteps.length; 
-
-            const totalCols = ddo.length + 1 + 1 + qLen; 
-
-            const renderElements = () => {
-                const elements = [];
-
-                // 1. Dividend Digits
-                for (let i = 0; i < ddo.length; i++) {
-                    elements.push(
-                        <div key={`dd-${i}`} className="digit-box" style={{ gridRow: 1, gridColumn: i + 1 }}>
-                            {ddo[i]}
-                        </div>
-                    );
-                }
-                // 2. Vertical Line
-                elements.push(
-                    <div key="vline" style={{
-                        gridColumn: ddo.length + 1,
-                        gridRow: '1 / 2',
-                        borderLeft: '3px solid #1f2937',
-                        height: '100%'
-                    }} />
-                );
-                // 3. Divisor
-                elements.push(
-                    <div key="divisor" className="digit-box" style={{ gridRow: 1, gridColumn: ddo.length + 2 }}>
-                        {dsr}
-                    </div>
-                );
-                // 4. Horizontal Line
-                elements.push(
-                    <div key="hline" style={{
-                        gridColumn: `${ddo.length + 1} / span ${1 + qLen}`,
-                        gridRow: 2,
-                        borderTop: '3px solid #1f2937',
-                        height: 0
-                    }} />
-                );
-                // 5. Quotient Boxes
-                logicSteps.forEach((step, idx) => {
-                    const isPast = idx < progress.currentStepIndex;
-                    const isCurrent = idx === progress.currentStepIndex && progress.phase === 'quotient';
-                    const hasHistory = progress.quotientHistory[idx] !== undefined;
-                    const col = ddo.length + 2 + idx;
-                    let content = '';
-                    let className = 'answer-box';
-                    if (hasHistory) {
-                        content = progress.quotientHistory[idx].val.toString();
-                        className += ' filled correct';
-                    } else if (isCurrent) {
-                        className += ' current';
-                    }
-                    elements.push(
-                        <div key={`q-${idx}`} className={className} style={{ gridRow: 3, gridColumn: col }}>
-                            {content}
-                        </div>
-                    );
-                });
-                // 6. Arc
-                if (progress.digitsTaken > 0 && progress.phase !== 'select_digits') {
-                    elements.push(
-                        <div key="arc" style={{
-                            gridRow: 1,
-                            gridColumn: `1 / span ${progress.digitsTaken}`,
-                            position: 'relative',
-                            height: 0
-                        }}>
-                            <div style={{
-                                position: 'absolute',
-                                top: '-10px',
-                                left: 0,
-                                width: '100%',
-                                height: '15px',
-                                border: '3px solid var(--danger)',
-                                borderBottom: 'none',
-                                borderRadius: '100% 100% 0 0'
-                            }}></div>
-                        </div>
-                    );
-                }
-                // 7. Logic Steps
-                let currentRow = 3; 
-                let currentParcialEndCol = progress.digitsTaken;
-
-                for (let i = 0; i < logicSteps.length; i++) {
-                    if (i > progress.currentStepIndex) break;
-                    const step = logicSteps[i];
-                    const isCurrentStep = i === progress.currentStepIndex;
-                    
-                    if (step.isZeroQuotient) {
-                        const rowToRender = currentRow - 1; 
-                        if (step.digitToBringDown !== null) {
-                            const show = i < progress.currentStepIndex || (isCurrentStep && progress.phase === 'finished');
-                            if (show) {
-                                elements.push(
-                                    <div key={`bd-${i}`} className="digit-box" style={{ gridRow: rowToRender, gridColumn: currentParcialEndCol + 1 }}>
-                                        {step.digitToBringDown}
-                                    </div>
-                                );
-                            }
-                            currentParcialEndCol++;
-                        }
-                    } else {
-                        const remainderStr = step.remainder.toString();
-                        const startCol = currentParcialEndCol - remainderStr.length + 1;
-                        const showRemainder = !isCurrentStep || (isCurrentStep && (progress.phase === 'bring_down' || progress.phase === 'finished'));
-                        const isTyping = isCurrentStep && progress.phase === 'multiply_subtract';
-
-                        if (showRemainder) {
-                            for (let k = 0; k < remainderStr.length; k++) {
-                                elements.push(
-                                    <div key={`rem-${i}-${k}`} className="digit-box correct" style={{ gridRow: currentRow, gridColumn: startCol + k }}>
-                                        {remainderStr[k]}
-                                    </div>
-                                );
-                            }
-                        } else if (isTyping) {
-                            const input = progress.tempInput;
-                            const inputStart = currentParcialEndCol - input.length + 1;
-                            for (let k = 0; k < input.length; k++) {
-                                elements.push(
-                                    <div key={`temp-${i}-${k}`} className="answer-box current" style={{ gridRow: currentRow, gridColumn: inputStart + k }}>
-                                        {input[k]}
-                                    </div>
-                                );
-                            }
-                        }
-
-                        if (showRemainder || isTyping) {
-                            if (step.digitToBringDown !== null) {
-                                const showBD = i < progress.currentStepIndex;
-                                if (showBD) {
-                                    elements.push(
-                                        <div key={`bd-${i}`} className="digit-box" style={{ gridRow: currentRow, gridColumn: currentParcialEndCol + 1 }}>
-                                            {step.digitToBringDown}
-                                        </div>
-                                    );
-                                }
-                                currentParcialEndCol++;
-                            }
-                            currentRow++; 
-                        }
-                    }
-                }
-                return elements;
-            };
-
-            return (
-                <div className="division-wrapper" style={{ gridTemplateColumns: `repeat(${totalCols}, 1fr)` }}>
-                    {renderElements()}
-                </div>
-            );
-        };
-
-        const GameScreen = ({ config, soundEnabled, setSoundEnabled, onFinishGame, onExit, onNextLevel, onNewManual, onUserInteraction }) => {
-            const [logicSteps, setLogicSteps] = React.useState([]);
-            const [progress, setProgress] = React.useState({
-                digitsTaken: 0,
-                currentStepIndex: 0,
-                phase: 'select_digits',
-                tempInput: '',
-                quotientHistory: [],
-                gridHistory: []
-            });
-            const [showQuestionPopup, setShowQuestionPopup] = React.useState(false);
-            const [questionText, setQuestionText] = React.useState('');
-            const [questionOptions, setQuestionOptions] = React.useState([]);
-            const [feedback, setFeedback] = React.useState(null);
-            const [showHelp, setShowHelp] = React.useState(false);
-            const [showTables, setShowTables] = React.useState(false);
-
-            const [playCorrect] = useSound('https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Correcto.mp3', { volume: 0.7, soundEnabled });
-            const [playError] = useSound('https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Error.mp3', { volume: 0.7, soundEnabled });
-            const [playTap] = useSound('https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/37b3eb2da9c15c04dfb71dfe1be60f088ea3cdfc/Tap.mp3', { volume: 0.7, soundEnabled });
-
-            React.useEffect(() => {
-                const steps = calculateDivisionSteps(config.dividend, config.divisor);
-                setLogicSteps(steps);
-                setProgress({
-                    digitsTaken: 0,
-                    currentStepIndex: 0,
-                    phase: 'select_digits',
-                    tempInput: '',
-                    quotientHistory: [],
-                    gridHistory: []
-                });
-                setFeedback(null);
-                setQuestionText('¿Cuántas cifras del dividendo cogemos?');
-                setQuestionOptions([1, 2]);
-                setShowQuestionPopup(true);
-            }, [config]);
-
-            const handleQuestionOptionClick = (opt) => {
-                playTap();
-                onUserInteraction(); // Track click
-                const dividendStr = config.dividend;
-                const firstDigit = parseInt(dividendStr[0]);
-                let valid = false;
-                if (opt === 1 && firstDigit >= config.divisor) valid = true;
-                else if (opt === 2 && firstDigit < config.divisor && dividendStr.length >= 2) valid = true;
-                else if (opt === 2 && dividendStr.length < 2) valid = false;
-
-                if (valid) {
-                    playCorrect();
-                    setShowQuestionPopup(false);
-                    setProgress(prev => ({ ...prev, digitsTaken: opt, phase: 'quotient' }));
+    } else if (G.phase === 'multiply_subtract') {
+        const expected = step.remainder.toString();
+        const next     = G.tempInput + d.toString();
+        if (next.length <= expected.length) {
+            G.tempInput = next;
+            if (next.length === expected.length) {
+                if (parseInt(next) === step.remainder) {
+                    playSound('correct');
+                    G.phase = step.digitToBringDown !== null ? 'bring_down' : 'finished';
+                    G.tempInput = '';
                 } else {
-                    playError();
+                    playSound('error');
+                    setTimeout(() => { G.tempInput = ''; renderGame(); }, 500);
                 }
-            };
+            }
+        }
 
-            const getGuideText = () => {
-                if (progress.phase === 'select_digits') return "0. ¿Cuántas cifras cogemos?";
-                if (progress.phase === 'quotient') return "1. Buscar en la tabla un número que se acerque sin pasarse";
-                if (progress.phase === 'multiply_subtract') return "2. Multiplicar hasta llegar. (Multiplica y resta mentalmente)";
-                if (progress.phase === 'bring_down') {
-                    const step = logicSteps[progress.currentStepIndex];
-                    if (step && step.isZeroQuotient) {
-                        return "Recuerda: Cero al cociente, se baja la cifra siguiente.";
-                    }
-                    return "3. Baja la siguiente cifra.";
-                }
-                if (progress.phase === 'finished') return "¡División terminada! Comprueba tu resultado final.";
-                return "";
-            };
+    } else if (G.phase === 'bring_down') {
+        const expected = parseInt(step.digitToBringDown || '0');
+        if (d === expected) {
+            playSound('correct');
+            const next = G.currentStepIndex + 1;
+            if (next < G.steps.length) { G.currentStepIndex = next; G.phase = 'quotient'; }
+            else                       { G.phase = 'finished'; }
+        } else {
+            playSound('error');
+        }
+    }
+    renderGame();
+}
 
-            const handleDigitClick = (digit) => {
-                if (progress.phase === 'finished') return;
-                playTap();
-                onUserInteraction(); // Track click
+function handleCheck() {
+    playSound('correct');
+    const q   = Math.floor(parseInt(G.dividend) / G.divisor);
+    const rem = parseInt(G.dividend) % G.divisor;
+    G.feedback = { msg: `¡Correcto! ${G.dividend} ÷ ${G.divisor} = ${q} resto ${rem}`, type: 'success' };
+    renderGame();
+}
 
-                const currentStep = logicSteps[progress.currentStepIndex];
+function handleNext() {
+    playSound('tap');
+    const { dividend, divisor } = generateRandomDivision();
+    const steps  = calculateDivisionSteps(dividend, divisor);
+    const minInt = calculateMinInteractions(steps);
+    G.globalMinInt += minInt;
+    G.questionIndex++;
+    G.dividend = dividend; G.divisor = divisor; G.steps = steps;
+    G.phase = 'select_digits'; G.currentStepIndex = 0; G.digitsTaken = 0;
+    G.tempInput = ''; G.quotientHistory = []; G.feedback = null;
+    buildTableModal();
+    renderGame();
+}
 
-                if (progress.phase === 'quotient') {
-                    if (digit === currentStep.quotientDigit) {
-                        playCorrect();
-                        const newHist = [...progress.quotientHistory];
-                        newHist[progress.currentStepIndex] = { val: digit, correct: true };
-                        if (currentStep.isZeroQuotient) {
-                            if (currentStep.digitToBringDown !== null) {
-                                setProgress(prev => ({ ...prev, quotientHistory: newHist, phase: 'bring_down' }));
-                            } else {
-                                setProgress(prev => ({ ...prev, quotientHistory: newHist, phase: 'finished' }));
-                            }
-                        } else {
-                            setProgress(prev => ({ ...prev, quotientHistory: newHist, phase: 'multiply_subtract', tempInput: '' }));
-                        }
-                    } else {
-                        playError();
-                    }
-                } else if (progress.phase === 'multiply_subtract') {
-                    const expectedStr = currentStep.remainder.toString();
-                    const nextInput = progress.tempInput + digit.toString();
-                    if (nextInput.length <= expectedStr.length) {
-                        setProgress(prev => ({ ...prev, tempInput: nextInput }));
-                        if (nextInput.length === expectedStr.length) {
-                            if (parseInt(nextInput) === currentStep.remainder) {
-                                playCorrect();
-                                if (currentStep.digitToBringDown !== null) {
-                                    setProgress(prev => ({ ...prev, phase: 'bring_down', tempInput: '' }));
-                                } else {
-                                    setProgress(prev => ({ ...prev, phase: 'finished', tempInput: '' }));
-                                }
-                            } else {
-                                playError();
-                                setTimeout(() => setProgress(prev => ({ ...prev, tempInput: '' })), 500);
-                            }
-                        }
-                    }
-                } else if (progress.phase === 'bring_down') {
-                    const expected = parseInt(currentStep.digitToBringDown || '0');
-                    if (digit === expected) {
-                        playCorrect();
-                        const nextIdx = progress.currentStepIndex + 1;
-                        if (nextIdx < logicSteps.length) {
-                            setProgress(prev => ({ ...prev, currentStepIndex: nextIdx, phase: 'quotient' }));
-                        } else {
-                            setProgress(prev => ({ ...prev, phase: 'finished' }));
-                        }
-                    } else {
-                        playError();
-                    }
-                }
-            };
+function showFinal() {
+    playSound('tap');
+    let score = 0;
+    if (G.globalUserInt > 0) score = Math.min(100, Math.floor((G.globalMinInt / G.globalUserInt) * 100));
+    const elapsed = Math.floor((Date.now() - G.startTime) / 1000);
+    const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const ss = String(elapsed % 60).padStart(2, '0');
 
-            const handleCheck = () => {
-                playCorrect();
-                const quotient = Math.floor(parseInt(config.dividend) / config.divisor);
-                const remainder = parseInt(config.dividend) % config.divisor;
-                setFeedback({
-                    msg: `¡Correcto! ${config.dividend} ÷ ${config.divisor} = ${quotient} resto ${remainder}`,
-                    type: 'success'
-                });
-            };
+    document.getElementById('finalScoreEl').textContent = score;
+    document.getElementById('finalTimeEl').textContent  = `${mm}:${ss}`;
+    document.getElementById('finalMsgEl').textContent   = score === 100
+        ? '¡Enhorabuena, puntuación máxima!' : '¡Buen trabajo! Sigue practicando';
+    document.getElementById('trophyEl').style.display = score === 100 ? 'block' : 'none';
 
-            const handleActionBtn = (action) => {
-                playTap();
-                if (action === 'results') {
-                    onFinishGame();
-                }
-                if (action === 'next') onNextLevel();
-                if (action === 'new') onNewManual();
-                if (action === 'exit') onExit();
-            };
+    showScreen('screenFinal');
+    if (score === 100) { playSound('victory'); launchConfetti(); }
+    else               { playSound('completed'); }
+}
 
-            return (
-                <div className="screen active" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                    <button className="fixed-sound-btn" onClick={() => { playTap(); setSoundEnabled(!soundEnabled); }}>
-                        {soundEnabled ? '🔊' : '🔇'}
-                    </button>
-                    <button className="fixed-tables-btn" onClick={() => { playTap(); setShowTables(true); }}>📊</button>
-                    <button className="fixed-help-btn" onClick={() => { playTap(); setShowHelp(true); }}>❓</button>
+// ── TABLE MODAL ──
+function buildTableModal() {
+    document.getElementById('tableTitle').textContent = `Tabla del ${G.divisor}`;
+    const content = document.getElementById('tableContent');
+    content.innerHTML = '';
+    for (let n = 1; n <= 10; n++) {
+        const p = document.createElement('p');
+        p.textContent = `${G.divisor} × ${n} = ${G.divisor * n}`;
+        content.appendChild(p);
+    }
+}
 
-                    <div className="container">
-                        <div className="game-header">
-                            <h1>División por una cifra</h1>
-                            {!config.isInfinite && !config.isManual && (
-                                <>
-                                    <div className="progress-text">{config.questionIndex + 1}/{config.totalQuestions}</div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: `${((config.questionIndex + 1) / config.totalQuestions) * 100}%` }}></div>
-                                    </div>
-                                </>
-                            )}
-                            <div className="guide-text">{getGuideText()}</div>
-                        </div>
-                        
-                        <div id="divisionArea" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                            <GridRenderer 
-                                dividend={config.dividend}
-                                divisor={config.divisor}
-                                logicSteps={logicSteps}
-                                progress={progress}
-                            />
-                        </div>
-                        
-                        {showQuestionPopup && (
-                            <div className="question-popup visible">
-                                <h3>{questionText}</h3>
-                                <div className="digit-bank">
-                                    {questionOptions.map(opt => (
-                                        <button key={opt} className="digit-btn" onClick={() => handleQuestionOptionClick(opt)}>{opt}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        
-                        {!showQuestionPopup && progress.phase !== 'finished' && (
-                            <div className="digit-bank">
-                                {[0,1,2,3,4,5,6,7,8,9].map(d => (
-                                    <button key={d} className="digit-btn" onClick={() => handleDigitClick(d)}>{d}</button>
-                                ))}
-                            </div>
-                        )}
-                        
-                        <div className="btn-group-row">
-                            {progress.phase === 'finished' && !feedback && (
-                                <button className="btn btn-primary" onClick={handleCheck}>Comprobar</button>
-                            )}
-                            {feedback && (
-                                <>
-                                    {config.isInfinite ? (
-                                        <>
-                                            <button className="btn btn-success" onClick={() => handleActionBtn('next')}>Continuar</button>
-                                            <button className="btn btn-danger" onClick={() => handleActionBtn('exit')}>Salir</button>
-                                        </>
-                                    ) : config.isManual ? (
-                                        <>
-                                            <button className="btn btn-primary" onClick={() => handleActionBtn('new')}>Nueva</button>
-                                            <button className="btn" onClick={() => handleActionBtn('exit')}>Inicio</button>
-                                        </>
-                                    ) : (
-                                        config.questionIndex + 1 < config.totalQuestions ? (
-                                            <button className="btn btn-success" onClick={() => handleActionBtn('next')}>Continuar</button>
-                                        ) : (
-                                            <button className="btn btn-success" onClick={() => handleActionBtn('results')}>Resultados</button>
-                                        )
-                                    )}
-                                </>
-                            )}
-                        </div>
-                        
-                        {feedback && (
-                            <div className={`feedback show ${feedback.type}`}>
-                                {feedback.msg}
-                            </div>
-                        )}
-                    </div>
-
-                    {showHelp && (
-                        <div className="modal active" onClick={() => setShowHelp(false)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <div className="modal-header">
-                                    <h2>¿Cómo dividir?</h2>
-                                    <button className="modal-close" onClick={() => setShowHelp(false)}>&times;</button>
-                                </div>
-                                <div className="help-content unstyled-list">
-                                    <p><strong>0. ¿Cuántas cifras cogemos?</strong></p>
-                                    <p><strong>1. Buscar en la tabla</strong> un número que se acerque sin pasarse</p>
-                                    <p><strong>2. Multiplicar hasta llegar.</strong> (Multiplica y resta mentalmente)</p>
-                                    <p><strong>3. Baja la siguiente cifra.</strong></p>
-                                    <p className="magnitude-highlight" style={{ marginTop: '20px', textAlign: 'center' }}>
-                                        Recuerda: Cero al cociente, se baja la cifra siguiente.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {showTables && (
-                        <div className="modal active" onClick={() => setShowTables(false)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                 <div className="modal-header">
-                                    <h2>Tabla del {config.divisor}</h2>
-                                    <button className="modal-close" onClick={() => setShowTables(false)}>&times;</button>
-                                </div>
-                                <div className="tables-content">
-                                    {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                                        <p key={n}>{config.divisor} x {n} = {config.divisor * n}</p>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const Confetti = () => {
-            const colors = ['#d946ef', '#ff9f43', '#3b82f6', '#10b981', '#facc15', '#ef4444'];
-            return (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 9999 }}>
-                    {Array.from({ length: 100 }).map((_, i) => {
-                        const left = Math.random() * 100;
-                        const delay = Math.random() * 3;
-                        const color = colors[Math.floor(Math.random() * colors.length)];
-                        const size = Math.random() * 8 + 6;
-                        const rotation = Math.random() * 360;
-                        return (
-                            <div 
-                                key={i}
-                                className="confetti-piece"
-                                style={{
-                                    left: `${left}%`,
-                                    backgroundColor: color,
-                                    width: `${size}px`,
-                                    height: `${size}px`,
-                                    animationDelay: `${delay}s`,
-                                    transform: `rotate(${rotation}deg)`
-                                }}
-                            />
-                        );
-                    })}
-                </div>
-            )
-        };
-
-        const App = () => {
-            const [screen, setScreen] = React.useState('start');
-            const [config, setConfig] = React.useState(null);
-            const [manualDiv, setManualDiv] = React.useState('');
-            const [manualDivisor, setManualDivisor] = React.useState('');
-            const [errorMsg, setErrorMsg] = React.useState('');
-            const [finalScore, setFinalScore] = React.useState(0);
-            const [finalTimeStr, setFinalTimeStr] = React.useState("00:00");
-            const [soundEnabled, setSoundEnabled] = React.useState(true);
-            
-            // Global Scoring State
-            const [globalMinInteractions, setGlobalMinInteractions] = React.useState(0);
-            const [globalUserInteractions, setGlobalUserInteractions] = React.useState(0);
-
-            const [playTap] = useSound('https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/37b3eb2da9c15c04dfb71dfe1be60f088ea3cdfc/Tap.mp3', { volume: 0.7, soundEnabled });
-            const [playError] = useSound('https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Error.mp3', { volume: 0.7, soundEnabled });
-            const [playVictory] = useSound('https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Termin%C3%A9.mp3', { volume: 0.7, soundEnabled });
-            const [playCompleted] = useSound('https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Completado.mp3', { volume: 0.7, soundEnabled });
-
-            const startGame = (isInfinite) => {
-                playTap();
-                const { dividend, divisor } = generateRandomDivision();
-                const steps = calculateDivisionSteps(dividend, divisor);
-                const minInteractions = calculateMinInteractions(steps);
-                
-                // Reset Score Counters
-                setGlobalMinInteractions(minInteractions);
-                setGlobalUserInteractions(0);
-
-                setConfig({
-                    dividend,
-                    divisor,
-                    isInfinite,
-                    isManual: false,
-                    score: 0,
-                    questionIndex: 0,
-                    totalQuestions: 3,
-                    startTime: Date.now(),
-                    minInteractions // local min for current question (legacy) but we track global separately
-                });
-                setScreen('game');
-            };
-
-            const showManualMode = () => {
-                playTap();
-                setManualDiv('');
-                setManualDivisor('');
-                setErrorMsg('');
-                setScreen('manual_setup');
-            };
-
-            const startManual = () => {
-                playTap();
-                const d = parseInt(manualDiv);
-                const ds = parseInt(manualDivisor);
-                if (isNaN(d) || isNaN(ds) || d < 10 || d > 9999) {
-                    setErrorMsg('El dividendo debe estar entre 10 y 9999.');
-                    playError();
-                    return;
-                }
-                if (ds < 2 || ds > 9) {
-                    setErrorMsg('El divisor debe ser una cifra (2-9).');
-                    playError();
-                    return;
-                }
-                const steps = calculateDivisionSteps(manualDiv, ds);
-                const minInteractions = calculateMinInteractions(steps);
-                
-                setGlobalMinInteractions(minInteractions);
-                setGlobalUserInteractions(0);
-
-                setConfig({
-                    dividend: manualDiv,
-                    divisor: ds,
-                    isInfinite: false,
-                    isManual: true,
-                    score: 0,
-                    questionIndex: 0,
-                    totalQuestions: 1,
-                    startTime: Date.now(),
-                    minInteractions
-                });
-                setScreen('game');
-            };
-
-            const handleUserInteraction = () => {
-                setGlobalUserInteractions(prev => prev + 1);
-            };
-
-            const handleFinishGame = () => {
-                if (!config) return;
-                
-                // Final Score Calculation
-                let score = 0;
-                if (globalUserInteractions > 0) {
-                    score = Math.floor((globalMinInteractions / globalUserInteractions) * 100);
-                    if (score > 100) score = 100;
-                }
-                
-                const elapsed = Math.floor((Date.now() - config.startTime) / 1000); 
-                const minutes = Math.floor(elapsed / 60); 
-                const seconds = elapsed % 60; 
-                const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                setFinalScore(score);
-                setFinalTimeStr(timeStr);
-                setScreen('final');
-                if (score === 100) {
-                    playVictory();
-                } else {
-                    playCompleted();
-                }
-            };
-
-            const handleNextLevel = () => {
-                if (!config) return;
-                
-                // Generate next question
-                const { dividend, divisor } = generateRandomDivision();
-                const steps = calculateDivisionSteps(dividend, divisor);
-                const nextMinInteractions = calculateMinInteractions(steps);
-
-                // Accumulate min interactions
-                setGlobalMinInteractions(prev => prev + nextMinInteractions);
-
-                if (config.isInfinite) {
-                    setConfig({ ...config, dividend, divisor });
-                } else {
-                    if (config.questionIndex + 1 < config.totalQuestions) {
-                        setConfig({ ...config, questionIndex: config.questionIndex + 1, dividend, divisor });
-                    } else {
-                        // This case shouldn't be reached if button logic is correct (shows Results on last)
-                        handleFinishGame(); 
-                    }
-                }
-            };
-
-            return (
-                <>
-                    {screen === 'start' && (
-                        <div className="screen start-screen active">
-                            <div className="container">
-                                <h1>La división entre una cifra</h1>
-                                <p>Practica la <span className="magnitude-highlight">división entre una cifra</span> y aprende jugando</p>
-                                <div className="hint-card">
-                                    Recuerda que en la <span className="magnitude-highlight">división</span>, vamos <span className="magnitude-highlight">de izquierda a derecha</span>. Si tienes dudas, pulsa el botón de ayuda. <br/><br/><strong>¡Buena suerte!</strong>
-                                </div>
-                                <div className="btn-group">
-                                    <button className="btn" onClick={() => startGame(false)}>Comenzar</button>
-                                    <button className="btn btn-primary" onClick={showManualMode}>Manual</button>
-                                </div>
-                                <img src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png" alt="Niños estudiando" className="start-image"/>
-                            </div>
-                        </div>
-                    )}
-                    {screen === 'manual_setup' && (
-                        <div className="screen active">
-                            <div className="container">
-                                <h1>Modo Manual</h1>
-                                <p>Introduce tu propia división para practicar.</p>
-                                <div className="input-group">
-                                    <label htmlFor="manualDividend">Dividendo (entre 10 y 9999)</label>
-                                    <input type="number" id="manualDividend" placeholder="Ej: 456" value={manualDiv} onChange={(e) => setManualDiv(e.target.value)} />
-                                </div>
-                                <div className="input-group">
-                                    <label htmlFor="manualDivisor">Divisor (una cifra)</label>
-                                    <input type="number" id="manualDivisor" placeholder="Ej: 5" value={manualDivisor} onChange={(e) => setManualDivisor(e.target.value)} />
-                                </div>
-                                <div className="manual-error">{errorMsg}</div>
-                                <div className="btn-group">
-                                    <button className="btn btn-success" onClick={startManual}>Empezar</button>
-                                    <button className="btn" onClick={() => { playTap(); setScreen('start'); }}>Atrás</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {screen === 'game' && config && (
-                        <GameScreen 
-                            config={config} 
-                            soundEnabled={soundEnabled}
-                            setSoundEnabled={setSoundEnabled}
-                            onExit={() => { playTap(); setScreen('start'); }}
-                            onFinishGame={handleFinishGame}
-                            onNextLevel={handleNextLevel}
-                            onNewManual={showManualMode}
-                            onUserInteraction={handleUserInteraction}
-                        />
-                    )}
-                    {screen === 'final' && (
-                        <div className="screen final-screen active">
-                            <div className="container">
-                                <h1>La división entre una cifra</h1>
-                                {finalScore === 100 && <div className="trophy">🏆</div>}
-                                <div className="final-score" style={{ color: 'var(--final-score-color)' }}>{finalScore}</div>
-                                <div className="final-time">Tiempo: {finalTimeStr}</div>
-                                <p className="final-message">
-                                    {finalScore === 100 ? '¡Enhorabuena, puntuación máxima!' : '¡Buen trabajo! Sigue practicando'}
-                                </p>
-                                <div className="btn-group">
-                                    <button className="btn" style={{ backgroundColor: '#f59e42' }} onClick={() => { playTap(); setScreen('start'); }}>Volver al menú</button>
-                                    <button className="btn btn-primary" onClick={() => startGame(true)}>Entrenamiento infinito</button>
-                                </div>
-                                <p className="credit">Created by Manuel J. Ventura</p>
-                                <img src="https://github.com/ManuelVS8/Efectos_audio/blob/1e2a36cdd1f8bedcb578a30f5ec5cc8f21c287fe/Siurot.png?raw=true" alt="Logo del colegio" className="school-logo" />
-                            </div>
-                            {finalScore === 100 && <Confetti />}
-                        </div>
-                    )}
-                </>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+// ── CONFETTI ──
+function launchConfetti() {
+    const colors = ['#f59e42','#2ecc71','#254fba','#e74c3c','#d946ef'];
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + 'vw';
+            c.style.top  = '-10px';
+            c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            c.style.setProperty('--tx', (Math.random() - 0.5) * 400 + 'px');
+            c.style.setProperty('--ty', window.innerHeight + 'px');
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
+        }, i * 30);
+    }
+}
+</script>
 </body>
 </html>
